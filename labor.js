@@ -1,7 +1,7 @@
 export const laborList = [
   {
     "Resource": "عربية رتش",
-    "Unit": "نقلة",
+    "Unit": "عربية 3 متر مكعب",
     "Unit Cost": 500,
     "Type": "عمالة"
   },

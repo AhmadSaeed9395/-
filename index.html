@@ -186,8 +186,11 @@
                         <div class="total-section">
                             <div class="total-row">
                                 <span class="unit-price" id="unitPriceDisplay"></span>
-                                <span class="total-label">التكلفة الإجمالية:</span>
-                                <span id="totalCost" class="total-value">0.00</span> جنيه
+                                <span class="total-separator" aria-hidden="true"></span>
+                                <span class="total-capsule">
+                                    <span class="label">التكلفة الإجمالية:</span>
+                                    <span class="value"><span id="totalCost" class="total-value">0.00</span> جنيه</span>
+                                </span>
                                 <button id="saveItemBtn" class="save-item-btn">حفظ</button>
                             </div>
                         </div>
@@ -227,6 +230,26 @@
                                 <div class="accordion-body" id="resourcesLaborBody" style="display: none;"></div>
                             </div>
                         </div>
+                        <div class="resources-total-section">
+                            <div class="resources-total-row">
+                                <div class="resource-total-item">
+                                    <span class="label">إجمالي الخامات:</span>
+                                    <span class="value" id="resourcesMaterialsTotal">0.00 جنيه</span>
+                                </div>
+                                <div class="resource-total-item">
+                                    <span class="label">إجمالي المصنعيات:</span>
+                                    <span class="value" id="resourcesWorkmanshipTotal">0.00 جنيه</span>
+                                </div>
+                                <div class="resource-total-item">
+                                    <span class="label">إجمالي العمالة:</span>
+                                    <span class="value" id="resourcesLaborTotal">0.00 جنيه</span>
+                                </div>
+                                <div class="resource-total-item total">
+                                    <span class="label">المجموع الكلي:</span>
+                                    <span class="value" id="resourcesGrandTotal">0.00 جنيه</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -239,6 +262,14 @@
                 </button>
                 <div id="summaryCards" class="summary-cards"></div>
                 <div class="summary-total" id="summaryTotal"></div>
+                <div class="summary-selling-total" id="summarySellingTotal"></div>
+                <div class="supervision-section">
+                    <div class="supervision-input-group">
+                        <label for="supervisionPercentage">نسبة الاشراف (%)</label>
+                        <input type="number" id="supervisionPercentage" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="summary-final-total" id="summaryFinalTotal"></div>
             </div>
         </main>
     </div>
