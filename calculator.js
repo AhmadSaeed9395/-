@@ -78,11 +78,7 @@ class ConstructionCalculator {
         // Collapsible panels logic
         this.setupCollapsiblePanels();
 
-        // Export PDF button logic
-        const exportBtn = document.getElementById('exportPdfBtn');
-        if (exportBtn) {
-            exportBtn.onclick = () => this.exportProjectToPDF();
-        }
+
         // Export Excel button logic
         const exportExcelBtn = document.getElementById('exportExcelBtn');
         if (exportExcelBtn) {
@@ -109,13 +105,32 @@ class ConstructionCalculator {
         
         // Add event listener for supervision percentage
         if (this.supervisionPercentage) {
-            console.log('Supervision percentage element found, adding event listener');
             this.supervisionPercentage.addEventListener('input', () => {
-                console.log('Supervision percentage input event fired!');
                 this.updateSummaryFinalTotal();
             });
+            
+            // Also add change event for better reliability
+            this.supervisionPercentage.addEventListener('change', () => {
+                this.updateSummaryFinalTotal();
+            });
+            
+            // Add focus event to ensure the element is properly initialized
+            this.supervisionPercentage.addEventListener('focus', () => {
+                // Focus event for reliability
+            });
         } else {
-            console.log('Supervision percentage element NOT found!');
+            // Try to find it again after a short delay
+            setTimeout(() => {
+                this.supervisionPercentage = document.getElementById('supervisionPercentage');
+                if (this.supervisionPercentage) {
+                    this.supervisionPercentage.addEventListener('input', () => {
+                        this.updateSummaryFinalTotal();
+                    });
+                    this.supervisionPercentage.addEventListener('change', () => {
+                        this.updateSummaryFinalTotal();
+                    });
+                }
+            }, 100);
         }
     }
 
@@ -123,7 +138,8 @@ class ConstructionCalculator {
         const panels = [
             { header: 'pricesPanelHeader', content: 'pricesPanelContent', toggle: 'pricesPanelHeader' },
             { header: 'inputPanelHeader', content: 'inputPanelContent', toggle: 'inputPanelHeader' },
-            { header: 'resourcesPanelHeader', content: 'resourcesPanelContent', toggle: 'resourcesPanelHeader' }
+            { header: 'resourcesPanelHeader', content: 'resourcesPanelContent', toggle: 'resourcesPanelHeader' },
+            { header: 'summaryPanelHeader', content: 'summaryPanelContent', toggle: 'summaryPanelHeader' }
         ];
         panels.forEach(({ header, content }) => {
             const headerEl = document.getElementById(header);
@@ -1528,10 +1544,15 @@ class ConstructionCalculator {
 
     // Update prices for labor items when floor level changes (labor-only)
     updateLaborPricesForFloor(previousFloorLevel) {
+        try {
         const currentFloor = (this.laborFloorLevelInput && this.laborFloorLevelInput.value)
             ? (parseInt(this.laborFloorLevelInput.value) || 1)
             : (this.laborFloorLevel || 1);
         const prevFloor = previousFloorLevel || currentFloor;
+            
+            // Update this.laborFloorLevel to keep it in sync
+            this.laborFloorLevel = currentFloor;
+            
         // 1) Update visible inputs if present
         Object.entries(this.laborExtraInputs).forEach(([resourceName, extraInput]) => {
             const priceInput = document.querySelector(`.price-input[data-resource='${resourceName}'][data-type='labor']`);
@@ -1544,10 +1565,11 @@ class ConstructionCalculator {
                 const baseFromDataset = parseFloat(priceInput.dataset.base);
                 const base = !isNaN(baseFromDataset) ? baseFromDataset : ((parseFloat(priceInput.value) || 0) - extra * (prevFloor - 1));
                 const newPrice = base + extra * (currentFloor - 1);
-                priceInput.value = this.formatNumber(isNaN(newPrice) ? 0 : newPrice);
-                this.setCustomPrice(resourceName, parseFloat(priceInput.value.replace(/,/g, '')) || 0);
+                    priceInput.value = this.formatNumber(isNaN(newPrice) ? 0 : newPrice);
+                    this.setCustomPrice(resourceName, parseFloat(priceInput.value.replace(/,/g, '')) || 0);
             }
         });
+            
         // 2) Update stored prices even if inputs are not mounted (using previous stored price as baseline)
         Object.keys(this.laborExtrasPerFloor || {}).forEach(resourceName => {
             const extra = parseFloat(this.laborExtrasPerFloor[resourceName]) || 0;
@@ -1559,7 +1581,16 @@ class ConstructionCalculator {
                 this.setCustomPrice(resourceName, isNaN(newPrice) ? 0 : newPrice);
             }
         });
+            
+            // Save the current floor level to project data
+            this.saveProjectLaborFloorLevel();
+            
         this.calculate();
+            this.updateResourcesTotals();
+            
+        } catch (error) {
+            console.error('Error updating labor prices for floor:', error);
+        }
     }
 
     saveCurrentItemToSummary() {
@@ -1716,7 +1747,7 @@ class ConstructionCalculator {
         if (cardData.sellPrice !== undefined) {
             card.dataset.sellPrice = cardData.sellPrice;
         } else {
-            card.dataset.sellPrice = cardData.unitPrice;
+        card.dataset.sellPrice = cardData.unitPrice;
         }
         
         // Calculate initial sell price if risk/tax values exist
@@ -1731,7 +1762,7 @@ class ConstructionCalculator {
         // Update resources totals ribbon immediately
         this.updateResourcesTotals();
         
-        // Update final total
+                // Update final total
         this.updateSummaryFinalTotal();
 
         // Add 'عرض التفاصيل' button to summary card
@@ -1828,78 +1859,108 @@ class ConstructionCalculator {
     }
 
     updateSummaryTotal() {
-        // Sum all visible cards' unit costs (تكلفة الوحدة)
+        try {
+            // Sum all visible cards' unit costs (تكلفة الوحدة)
         let total = 0;
-        this.summaryCards.querySelectorAll('.summary-card').forEach(card => {
-            const unitCost = parseFloat(card.cardData.unitPrice) || 0;
-            const quantity = parseFloat(card.cardData.quantity) || 0;
-            total += unitCost * quantity;
-        });
+            const cards = this.summaryCards.querySelectorAll('.summary-card');
+            
+            cards.forEach((card, index) => {
+                try {
+                    const unitCost = parseFloat(card.cardData?.unitPrice) || 0;
+                    const quantity = parseFloat(card.cardData?.quantity) || 0;
+                    const cardTotal = unitCost * quantity;
+                    total += cardTotal;
+                    
+                    if (isNaN(cardTotal)) {
+                        console.warn(`Card ${index + 1} has invalid calculation:`, { unitCost, quantity, cardTotal });
+                    }
+                } catch (cardError) {
+                    console.error(`Error processing card ${index + 1}:`, cardError);
+                }
+            });
+            
         if (this.summaryTotal) {
-            this.summaryTotal.innerHTML = `<span class="total-value">${this.formatNumber(total)}</span>`;
+                this.summaryTotal.innerHTML = `<span class="total-value">${this.formatNumber(total)}</span>`;
+            } else {
+                console.warn('summaryTotal element not found');
+            }
+            
+            // Also update the selling total
+            this.updateSummarySellingTotal();
+            
+        } catch (error) {
+            console.error('Error updating summary total:', error);
         }
-        
-        // Also update the selling total
-        this.updateSummarySellingTotal();
     }
 
     updateSummarySellingTotal() {
-        // Sum all visible cards' selling prices (سعر البيع) after risk and tax
-        let sellingTotal = 0;
-        this.summaryCards.querySelectorAll('.summary-card').forEach(card => {
-            const sell = parseFloat(card.dataset.sellPrice) || parseFloat(card.cardData.unitPrice) || 0;
-            const quantity = parseFloat(card.cardData.quantity) || 0;
-            sellingTotal += sell * quantity;
-        });
-        
-        if (this.summarySellingTotal) {
-            this.summarySellingTotal.innerHTML = `<span class="selling-total-value">${this.formatNumber(sellingTotal)}</span>`;
+        try {
+            // Sum all visible cards' selling prices (سعر البيع) after risk and tax
+            let sellingTotal = 0;
+            const cards = this.summaryCards.querySelectorAll('.summary-card');
+            
+            cards.forEach((card, index) => {
+                try {
+                    const sell = parseFloat(card.dataset.sellPrice) || parseFloat(card.cardData?.unitPrice) || 0;
+                    const quantity = parseFloat(card.cardData?.quantity) || 0;
+                    const cardTotal = sell * quantity;
+                    sellingTotal += cardTotal;
+                    
+                    if (isNaN(cardTotal)) {
+                        console.warn(`Card ${index + 1} has invalid selling calculation:`, { sell, quantity, cardTotal });
+                    }
+                } catch (cardError) {
+                    console.error(`Error processing selling for card ${index + 1}:`, cardError);
+                }
+            });
+            
+            if (this.summarySellingTotal) {
+                this.summarySellingTotal.innerHTML = `<span class="selling-total-value">${this.formatNumber(sellingTotal)}</span>`;
+            } else {
+                console.warn('summarySellingTotal element not found');
+            }
+            
+            // Also update the final total
+            this.updateSummaryFinalTotal();
+            
+        } catch (error) {
+            console.error('Error updating selling total:', error);
         }
-        
-        // Also update the final total
-        this.updateSummaryFinalTotal();
     }
 
     updateSummaryFinalTotal() {
-        console.log('updateSummaryFinalTotal called');
-        
-        // Get the selling total
-        let sellingTotal = 0;
-        const cards = this.summaryCards.querySelectorAll('.summary-card');
-        console.log('Found cards:', cards.length);
-        
-        cards.forEach((card, index) => {
-            const sellPrice = parseFloat(card.dataset.sellPrice) || parseFloat(card.cardData.unitPrice) || 0;
-            const quantity = parseFloat(card.cardData.quantity) || 0;
-            const cardTotal = sellPrice * quantity;
-            sellingTotal += cardTotal;
+        try {
+            // Get the selling total
+            let sellingTotal = 0;
+            const cards = this.summaryCards.querySelectorAll('.summary-card');
             
-            console.log(`Card ${index + 1}:`, {
-                sellPrice,
-                quantity,
-                cardTotal,
-                dataset: card.dataset.sellPrice,
-                cardData: card.cardData?.unitPrice
+            cards.forEach((card, index) => {
+                try {
+                    const sellPrice = parseFloat(card.dataset.sellPrice) || parseFloat(card.cardData?.unitPrice) || 0;
+                    const quantity = parseFloat(card.cardData?.quantity) || 0;
+                    const cardTotal = sellPrice * quantity;
+                    sellingTotal += cardTotal;
+                    
+                    if (isNaN(cardTotal)) {
+                        console.warn(`Card ${index + 1} has invalid final calculation:`, { sellPrice, quantity, cardTotal });
+                    }
+                } catch (cardError) {
+                    console.error(`Error processing final for card ${index + 1}:`, cardError);
+                }
             });
-        });
-        
-        // Apply supervision percentage
-        const supervisionPercent = parseFloat(this.supervisionPercentage?.value) || 0;
-        const finalTotal = sellingTotal * (1 + supervisionPercent / 100);
-        
-        console.log('Supervision calculation:', {
-            sellingTotal,
-            supervisionPercent,
-            finalTotal,
-            supervisionInput: this.supervisionPercentage?.value,
-            summaryFinalTotal: this.summaryFinalTotal
-        });
-        
-        if (this.summaryFinalTotal) {
-            this.summaryFinalTotal.innerHTML = `<span class="final-total-value">${this.formatNumber(finalTotal)}</span>`;
-            console.log('Updated final total display');
-        } else {
-            console.log('summaryFinalTotal element not found!');
+            
+            // Apply supervision percentage
+            const supervisionPercent = parseFloat(this.supervisionPercentage?.value) || 0;
+            const finalTotal = sellingTotal * (1 + supervisionPercent / 100);
+            
+            if (this.summaryFinalTotal) {
+                this.summaryFinalTotal.innerHTML = `<span class="final-total-value">${this.formatNumber(finalTotal)}</span>`;
+            } else {
+                console.warn('summaryFinalTotal element not found');
+            }
+            
+        } catch (error) {
+            console.error('Error updating final total:', error);
         }
     }
 
@@ -2042,7 +2103,7 @@ class ConstructionCalculator {
                 
                 return `<div class="resource-row" data-rank="${index + 1}">
                     <div class="resource-header">
-                        <span class="resource-name">${resource}</span>
+                    <span class="resource-name">${resource}</span>
                         <div class="resource-totals">
                             <span class="total-cost">
                                 <span class="label">إجمالي التكلفة:</span>
@@ -2356,8 +2417,11 @@ class ConstructionCalculator {
     }
     saveProjectLaborFloorLevel() {
         if (!this.currentProjectId || !this.projects[this.currentProjectId]) return;
+        
         this.projects[this.currentProjectId].laborFloorLevel = this.laborFloorLevel;
         this.saveProjects();
+        
+        console.log('Saved labor floor level to project:', this.laborFloorLevel);
     }
 
     // Helper to format rates to up to 4 decimal places, removing trailing zeros
@@ -2501,295 +2565,584 @@ class ConstructionCalculator {
         return `<div class="modal-accordion">${accordionItems}</div>`;
     }
 
-    exportProjectToPDF() {
-        if (typeof pdfMake === 'undefined') {
-            alert('pdfMake library not loaded.');
+
+
+
+    exportProjectToExcel() {
+        try {
+            // Check if XLSX library is loaded
+            if (typeof XLSX === 'undefined') {
+                alert('مكتبة Excel غير محملة. يرجى التأكد من تحميل الصفحة بشكل صحيح.');
             return;
         }
+
+            // Test basic XLSX functionality
+            try {
+                const testWb = XLSX.utils.book_new();
+                const testData = [['Test', 'Data']];
+                const testSheet = XLSX.utils.aoa_to_sheet(testData);
+                XLSX.utils.book_append_sheet(testWb, testSheet, 'Test');
+                console.log('Basic XLSX functionality test passed');
+            } catch (testError) {
+                console.error('Basic XLSX functionality test failed:', testError);
+                alert('مشكلة في مكتبة Excel. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
+                return;
+            }
+
         // Get current project
         const proj = this.projects[this.currentProjectId];
         if (!proj) {
             alert('لا يوجد مشروع محدد.');
             return;
         }
-        // Project info
-        const projectInfo = [
-            { text: 'بيانات المشروع', style: 'header' },
-            { ul: [
-                `اسم المشروع: ${proj.name}`,
-                `الكود: ${proj.code}`,
-                `النوع: ${proj.type}`,
-                `المساحة: ${proj.area} م²`,
-                `عدد الأدوار: ${proj.floor}`
-            ]}
-        ];
-        // Resource summary (إدارة الموارد)
-        const resourcesSummary = this.getResourcesSummary();
-        const resourcesTableBody = [
-            ['المورد', 'الكمية', 'الوحدة', 'التكلفة']
-        ];
-        Object.entries(resourcesSummary).forEach(([resource, data]) => {
-            resourcesTableBody.push([
-                resource,
-                this.formatNumber(data.totalAmount),
-                data.unit,
-                this.formatNumber(data.totalCost) + ' جنيه'
-            ]);
-        });
-        // Items (البنود)
-        const itemsTableBody = [
-            ['البند', 'الكمية', 'الوحدة', 'سعر الوحدة', 'الإجمالي']
-        ];
-        (proj.items || []).forEach(card => {
-            itemsTableBody.push([
-                `${card.mainItem} - ${card.subItem}`,
-                this.formatNumber(card.quantity),
-                card.unit,
-                card.unitPrice ? this.formatNumber(card.unitPrice) + ' جنيه' : '',
-                card.total ? this.formatNumber(card.total) + ' جنيه' : ''
-            ]);
-        });
-        // Build PDF definition
-        const docDefinition = {
-            content: [
-                ...projectInfo,
-                { text: 'إدارة الموارد', style: 'sectionHeader', margin: [0, 12, 0, 4] },
-                {
-                    table: {
-                        headerRows: 1,
-                        body: resourcesTableBody
-                    },
-                    layout: 'lightHorizontalLines',
-                    margin: [0, 0, 0, 10]
-                },
-                { text: 'البنود', style: 'sectionHeader', margin: [0, 12, 0, 4] },
-                {
-                    table: {
-                        headerRows: 1,
-                        body: itemsTableBody
-                    },
-                    layout: 'lightHorizontalLines',
-                    margin: [0, 0, 0, 10]
-                }
-            ],
-            defaultStyle: { font: 'Roboto', alignment: 'right' },
-            styles: {
-                header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: 'right' },
-                sectionHeader: { fontSize: 15, bold: true, margin: [0, 10, 0, 5], color: '#7b1fa2', alignment: 'right' }
-            },
-            pageOrientation: 'portrait',
-            pageSize: 'A4',
-            pageMargins: [30, 30, 30, 30],
-            rtl: true
-        };
-        // Use built-in Roboto font for now (Cairo not available in browser build)
-        pdfMake.createPdf(docDefinition).download(`${proj.name || 'مشروع'}.pdf`);
-    }
 
-    exportProjectToExcel() {
-        try {
-            // Get current project
-            const proj = this.projects[this.currentProjectId];
-            if (!proj) {
-                alert('لا يوجد مشروع محدد.');
+            // Check if required elements exist
+            if (!this.summaryCards) {
+                alert('عناصر الصفحة غير جاهزة. يرجى المحاولة مرة أخرى.');
                 return;
             }
 
-            // Project info as a sheet
-            const projectSheet = [
-                ['اسم المشروع', proj.name],
-                ['الكود', proj.code],
-                ['النوع', proj.type],
-                ['المساحة', proj.area],
-                ['عدد الأدوار', proj.floor]
-            ];
-
-            // Resources table
-            const resourcesSummary = this.getResourcesSummary();
-            const resourcesSheet = [
-                ['المورد', 'الكمية', 'الوحدة', 'التكلفة']
-            ];
-            Object.entries(resourcesSummary).forEach(([resource, data]) => {
-                resourcesSheet.push([
-                    resource,
-                    this.formatNumber(data.totalAmount),
-                    data.unit,
-                    this.formatNumber(data.totalCost) + ' جنيه'
-                ]);
-            });
-
-            // Items table
-            const itemsSheet = [
-                ['البند', 'الكمية', 'الوحدة', 'سعر الوحدة', 'الإجمالي']
-            ];
-            (proj.items || []).forEach(card => {
-                itemsSheet.push([
-                    `${card.mainItem} - ${card.subItem}`,
-                    this.formatNumber(card.quantity),
-                    card.unit,
-                    card.unitPrice ? this.formatNumber(card.unitPrice) + ' جنيه' : '',
-                    card.total ? this.formatNumber(card.total) + ' جنيه' : ''
-                ]);
-            });
+            console.log('Starting Excel export for project:', proj.name);
 
             // Create workbook
             const wb = XLSX.utils.book_new();
-
-            // Set workbook properties for RTL
+            
+            // Set workbook-level RTL
             wb.Workbook = {
-                Views: [{
-                    RTL: true, // Set workbook to RTL mode
-                    DefaultGridColor: 0,
-                    RightToLeft: true
-                }]
+                Views: [
+                    {
+                        RTL: true
+                    }
+                ]
             };
 
-            // Create sheets with RTL support
-            const projectWS = XLSX.utils.aoa_to_sheet(projectSheet);
-            const resourcesWS = XLSX.utils.aoa_to_sheet(resourcesSheet);
-            const itemsWS = XLSX.utils.aoa_to_sheet(itemsSheet);
+            // Get the resources summary data once for all sheets
+            const resourcesSummary = this.getResourcesSummary();
+            console.log('Resources summary for export:', resourcesSummary);
+            
+            if (!resourcesSummary || Object.keys(resourcesSummary).length === 0) {
+                console.warn('No resources data found for export');
+            }
 
-            // Set RTL properties for all sheets as default
-            [projectWS, resourcesWS, itemsWS].forEach(ws => {
-                // Set RTL direction as default
-                ws['!rtl'] = true;
+            // 1. Project Overview Sheet (معلومات المشروع)
+            const projectData = [
+                ['معلومات المشروع', ''],
+                ['اسم المشروع', proj.name],
+                ['كود المشروع', proj.code],
+                ['نوع المشروع', proj.type],
+                ['المساحة', `${this.formatNumber(proj.area)} م²`],
+                ['عدد الأدوار', proj.floor],
+                ['', ''],
+                ['تاريخ التصدير', new Date().toISOString().split('T')[0]],
+                ['وقت التصدير', new Date().toTimeString().split(' ')[0]]
+            ];
+
+            const projectSheet = XLSX.utils.aoa_to_sheet(projectData);
+            projectSheet['!rtl'] = true;
+            
+            // Set column widths for project sheet
+            projectSheet['!cols'] = [
+                { width: 25 },
+                { width: 35 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, projectSheet, 'معلومات المشروع');
+            console.log('Project overview sheet added');
+
+            // 2. Materials Sheet (الخامات)
+            if (this.resourcesMaterialsBody) {
+                console.log('Processing materials sheet...');
                 
-                // Set RTL for specific ranges to ensure proper display
-                if (ws['!ref']) {
-                    const range = XLSX.utils.decode_range(ws['!ref']);
-                    for (let R = range.s.r; R <= range.e.r; ++R) {
-                        for (let C = range.s.c; C <= range.e.c; ++C) {
-                            const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
-                            if (ws[cellAddress]) {
-                                // Set RTL alignment for each cell
-                                ws[cellAddress].s = {
-                                    ...ws[cellAddress].s,
-                                    alignment: {
-                                        horizontal: 'right',
-                                        vertical: 'center',
-                                        readingOrder: 2 // RTL reading order
-                                    }
-                                };
-                                
-                                // Add special styling for headers (first row)
-                                if (R === 0) {
-                                    ws[cellAddress].s = {
-                                        ...ws[cellAddress].s,
-                                        font: {
-                                            bold: true,
-                                            color: { rgb: "FFB300" }, // Golden color for headers
-                                            sz: 12
-                                        },
-                                        fill: {
-                                            fgColor: { rgb: "2C2C2C" }, // Dark background
-                                            patternType: "solid"
-                                        }
-                                    };
-                                }
-                            }
+                const materialsData = [
+                    ['إدارة الموارد - الخامات', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    ['اسم المورد', 'الوحدة', 'الكمية', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)', 'ملاحظات'],
+                    ['', '', '', '', '']
+                ];
+
+                // Get the actual data from the summary instead of parsing DOM
+                const resourcesSummary = this.getResourcesSummary();
+                const materialsResources = Object.entries(resourcesSummary).filter(([resource, data]) => data.type === 'خامات');
+                
+                console.log('Materials resources from summary:', materialsResources);
+                
+                materialsResources.forEach(([resource, data]) => {
+                    try {
+                        const resourceName = resource;
+                        const unit = data.unit || '';
+                        const actualQuantity = this.formatNumber(data.totalAmount);
+                        
+                        // Calculate unit price from total cost / total amount
+                        let unitPrice = '';
+                        if (data.totalAmount > 0) {
+                            unitPrice = this.formatNumber(data.totalCost / data.totalAmount);
                         }
+                        
+                        const totalCost = this.formatNumber(data.totalCost) + ' جنيه';
+
+                        console.log(`Adding material: ${resourceName}, unit: ${unit}, quantity: ${actualQuantity}, unitPrice: ${unitPrice}, totalCost: ${totalCost}`);
+                        
+                        materialsData.push([resourceName, unit, actualQuantity, unitPrice, totalCost, '']);
+                    } catch (error) {
+                        console.error('Error processing material resource:', error);
                     }
-                }
+                });
+
+                // Add totals section
+                const materialsTotal = this.calculateSectionTotal(this.resourcesMaterialsBody);
+                materialsData.push(['', '', '', '', '', '']);
+                materialsData.push(['', '', '', '', '', '']);
+                materialsData.push(['إجمالي تكلفة الخامات', '', '', '', materialsTotal, '']);
+                materialsData.push(['', '', '', '', '', '']);
+                materialsData.push(['ملاحظات', 'تشمل جميع المواد الأساسية المطلوبة للمشروع', '', '', '', '']);
+
+                const materialsSheet = XLSX.utils.aoa_to_sheet(materialsData);
+                materialsSheet['!rtl'] = true;
+                materialsSheet['!cols'] = [
+                    { width: 35 }, // اسم المورد
+                    { width: 15 }, // الوحدة
+                    { width: 15 }, // الكمية
+                    { width: 25 }, // سعر الوحدة
+                    { width: 30 }, // التكلفة الإجمالية
+                    { width: 25 }  // ملاحظات
+                ];
+
+                XLSX.utils.book_append_sheet(wb, materialsSheet, 'الخامات');
+                console.log('Materials sheet added');
+            }
+
+            // 3. Workmanship Sheet (المصنعيات)
+            if (this.resourcesWorkmanshipBody) {
+                console.log('Processing workmanship sheet...');
                 
-                // Set column widths for better readability in RTL
-                const colWidths = [];
-                for (let i = 0; i < 10; i++) {
-                    colWidths.push({ wch: 25 }); // Increased width for Arabic text
-                }
-                ws['!cols'] = colWidths;
+                const workmanshipData = [
+                    ['إدارة الموارد - المصنعيات', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    ['اسم المورد', 'الوحدة', 'الكمية', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)', 'ملاحظات'],
+                    ['', '', '', '', '']
+                ];
+
+                // Get the actual data from the summary instead of parsing DOM
+                const workmanshipResources = Object.entries(resourcesSummary).filter(([resource, data]) => data.type === 'مصنعيات');
                 
-                // Set default row height for better appearance
-                ws['!rows'] = [];
-                for (let i = 0; i < 100; i++) {
-                    ws['!rows'].push({ hpt: 20 }); // Set row height to 20 points
+                console.log('Workmanship resources from summary:', workmanshipResources);
+                
+                workmanshipResources.forEach(([resource, data]) => {
+                    try {
+                        const resourceName = resource;
+                        const unit = data.unit || '';
+                        const actualQuantity = this.formatNumber(data.totalAmount);
+                        
+                        // Calculate unit price from total cost / total amount
+                        let unitPrice = '';
+                        if (data.totalAmount > 0) {
+                            unitPrice = this.formatNumber(data.totalCost / data.totalAmount);
+                        }
+                        
+                        const totalCost = this.formatNumber(data.totalCost) + ' جنيه';
+
+                        console.log(`Adding workmanship: ${resourceName}, unit: ${unit}, quantity: ${actualQuantity}, unitPrice: ${unitPrice}, totalCost: ${totalCost}`);
+                        
+                        workmanshipData.push([resourceName, unit, actualQuantity, unitPrice, totalCost, '']);
+                    } catch (error) {
+                        console.error('Error processing workmanship resource:', error);
+                    }
+                });
+
+                // Add totals section
+                const workmanshipTotal = this.calculateSectionTotal(this.resourcesWorkmanshipBody);
+                workmanshipData.push(['', '', '', '', '', '']);
+                workmanshipData.push(['', '', '', '', '', '']);
+                workmanshipData.push(['إجمالي تكلفة المصنعيات', '', '', '', workmanshipTotal, '']);
+                workmanshipData.push(['', '', '', '', '', '']);
+                workmanshipData.push(['ملاحظات', 'تشمل جميع المصنعيات والمنتجات الجاهزة', '', '', '', '']);
+
+                const workmanshipSheet = XLSX.utils.aoa_to_sheet(workmanshipData);
+                workmanshipSheet['!rtl'] = true;
+                workmanshipSheet['!cols'] = [
+                    { width: 35 }, // اسم المورد
+                    { width: 15 }, // الوحدة
+                    { width: 15 }, // الكمية
+                    { width: 25 }, // سعر الوحدة
+                    { width: 30 }, // التكلفة الإجمالية
+                    { width: 25 }  // ملاحظات
+                ];
+
+                XLSX.utils.book_append_sheet(wb, workmanshipSheet, 'المصنعيات');
+                console.log('Workmanship sheet added');
+            }
+
+            // 4. Labor Sheet (العمالة)
+            if (this.resourcesLaborBody) {
+                console.log('Processing labor sheet...');
+                
+                const laborData = [
+                    ['إدارة الموارد - العمالة', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    ['اسم المورد', 'الوحدة', 'الكمية', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)', 'ملاحظات'],
+                    ['', '', '', '', '']
+                ];
+
+                // Get the actual data from the summary instead of parsing DOM
+                const laborResources = Object.entries(resourcesSummary).filter(([resource, data]) => data.type === 'عمالة');
+                
+                console.log('Labor resources from summary:', laborResources);
+                
+                laborResources.forEach(([resource, data]) => {
+                    try {
+                        const resourceName = resource;
+                        const unit = data.unit || '';
+                        const actualQuantity = this.formatNumber(data.totalAmount);
+                        
+                        // Calculate unit price from total cost / total amount
+                        let unitPrice = '';
+                        if (data.totalAmount > 0) {
+                            unitPrice = this.formatNumber(data.totalCost / data.totalAmount);
+                        }
+                        
+                        const totalCost = this.formatNumber(data.totalCost) + ' جنيه';
+
+                        console.log(`Adding labor: ${resourceName}, unit: ${unit}, quantity: ${actualQuantity}, unitPrice: ${unitPrice}, totalCost: ${totalCost}`);
+                        
+                        laborData.push([resourceName, unit, actualQuantity, unitPrice, totalCost, '']);
+                    } catch (error) {
+                        console.error('Error processing labor resource:', error);
+                    }
+                });
+
+                // Add totals section
+                const laborTotal = this.calculateSectionTotal(this.resourcesLaborBody);
+                laborData.push(['', '', '', '', '', '']);
+                laborData.push(['', '', '', '', '', '']);
+                laborData.push(['إجمالي تكلفة العمالة', '', '', '', laborTotal, '']);
+                laborData.push(['', '', '', '', '', '']);
+                laborData.push(['ملاحظات', 'تشمل جميع خدمات العمالة والتنفيذ', '', '', '', '']);
+
+                const laborSheet = XLSX.utils.aoa_to_sheet(laborData);
+                laborSheet['!rtl'] = true;
+                laborSheet['!cols'] = [
+                    { width: 35 }, // اسم المورد
+                    { width: 15 }, // الوحدة
+                    { width: 15 }, // الكمية
+                    { width: 25 }, // سعر الوحدة
+                    { width: 30 }, // التكلفة الإجمالية
+                    { width: 25 }  // ملاحظات
+                ];
+
+                XLSX.utils.book_append_sheet(wb, laborSheet, 'العمالة');
+                console.log('Labor sheet added');
+            }
+
+            // 5. Summary Sheet (الملخص)
+            console.log('Processing summary sheet...');
+            const summaryData = [
+                ['ملخص المشروع - البنود', '', '', '', '', ''],
+                ['', '', '', '', '', ''],
+                ['', '', '', '', '', ''],
+                ['البند الرئيسي', 'البند الفرعي', 'الكمية', 'الوحدة', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)'],
+                ['', '', '', '', '', '']
+            ];
+
+            // Add summary cards data
+            const summaryCards = this.summaryCards.querySelectorAll('.summary-card');
+            console.log('Found summary cards:', summaryCards.length);
+            
+            summaryCards.forEach(card => {
+                try {
+                    const cardData = card.cardData;
+                    if (cardData) {
+                        summaryData.push([
+                            cardData.mainItem || '',
+                            cardData.subItem || '',
+                            this.formatNumber(cardData.quantity) || '',
+                            cardData.unit || '',
+                            this.formatNumber(cardData.unitPrice) || '',
+                            this.formatNumber(cardData.total) || ''
+                        ]);
+                    }
+                } catch (error) {
+                    console.error('Error processing summary card:', error);
                 }
             });
 
-            // Add sheets to workbook
-            XLSX.utils.book_append_sheet(wb, projectWS, 'بيانات المشروع');
-            XLSX.utils.book_append_sheet(wb, resourcesWS, 'إدارة الموارد');
-            XLSX.utils.book_append_sheet(wb, itemsWS, 'البنود');
+            // Add summary totals
+            const summaryTotal = this.calculateSummaryTotal();
+            const summarySellingTotal = this.calculateSummarySellingTotal();
+            const summaryFinalTotal = this.calculateSummaryFinalTotal();
 
-            // Export with RTL support
+            summaryData.push(['', '', '', '', '', '']);
+            summaryData.push(['', '', '', '', '', '']);
+            summaryData.push(['إجمالي التكلفة الأساسية', '', '', '', '', summaryTotal]);
+            summaryData.push(['إجمالي سعر البيع', '', '', '', '', summarySellingTotal]);
+            summaryData.push(['إجمالي سعر البيع النهائي', '', '', '', '', summaryFinalTotal]);
+            summaryData.push(['', '', '', '', '', '']);
+            summaryData.push(['ملاحظات', 'تشمل جميع بنود المشروع مع حسابات المخاطر والضرائب', '', '', '', '']);
+
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+            summarySheet['!rtl'] = true;
+            summarySheet['!cols'] = [
+                { width: 25 }, // البند الرئيسي
+                { width: 25 }, // البند الفرعي
+                { width: 15 }, // الكمية
+                { width: 15 }, // الوحدة
+                { width: 25 }, // سعر الوحدة
+                { width: 30 }  // التكلفة الإجمالية
+            ];
+
+            XLSX.utils.book_append_sheet(wb, summarySheet, 'الملخص');
+            console.log('Summary sheet added');
+
+            // 6. Totals Overview Sheet (الإجماليات)
+            console.log('Processing totals sheet...');
+            const totalsData = [
+                ['إجماليات المشروع - ملخص شامل', ''],
+                ['', ''],
+                ['', ''],
+                ['تفاصيل التكاليف', 'المبلغ (جنيه)'],
+                ['', ''],
+                ['إجمالي تكلفة الخامات', this.getSectionTotalDisplay('resourcesMaterialsTotal')],
+                ['إجمالي تكلفة المصنعيات', this.getSectionTotalDisplay('resourcesWorkmanshipTotal')],
+                ['إجمالي تكلفة العمالة', this.getSectionTotalDisplay('resourcesLaborTotal')],
+                ['', ''],
+                ['المجموع الكلي للموارد', this.getSectionTotalDisplay('resourcesGrandTotal')],
+                ['', ''],
+                ['إجمالي التكلفة الأساسية', summaryTotal],
+                ['إجمالي سعر البيع', summarySellingTotal],
+                ['إجمالي سعر البيع النهائي', summaryFinalTotal],
+                ['', ''],
+                ['ملاحظات', 'تم حساب جميع التكاليف بناءً على البيانات المدخلة في النظام']
+            ];
+
+            const totalsSheet = XLSX.utils.aoa_to_sheet(totalsData);
+            totalsSheet['!rtl'] = true;
+            totalsSheet['!cols'] = [
+                { width: 40 },
+                { width: 30 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, totalsSheet, 'الإجماليات');
+            console.log('Totals sheet added');
+
+            // Set default row height for all sheets
+            if (wb.Sheets && typeof wb.Sheets === 'object') {
+                Object.keys(wb.Sheets).forEach(sheetName => {
+                    if (wb.Sheets[sheetName]) {
+                        wb.Sheets[sheetName]['!rows'] = Array(50).fill({ hpt: 20 });
+                    }
+                });
+            }
+
+            console.log('All sheets prepared, starting download...');
+
+            // Download the file
             const fileName = `${proj.name || 'مشروع'}_${new Date().toISOString().split('T')[0]}.xlsx`;
             XLSX.writeFile(wb, fileName);
             
-            // Show success message
-            alert('تم تصدير المشروع إلى Excel بنجاح!');
+            console.log('File downloaded successfully:', fileName);
             
+            // Success message
+            alert(`تم تصدير المشروع بنجاح إلى ملف: ${fileName}`);
+
         } catch (error) {
             console.error('Error exporting to Excel:', error);
-            alert('حدث خطأ أثناء التصدير إلى Excel. يرجى المحاولة مرة أخرى.');
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            
+            // Check specific conditions that might cause failure
+            console.log('Debug info:', {
+                hasXLSX: typeof XLSX !== 'undefined',
+                hasProject: !!this.projects[this.currentProjectId],
+                hasSummaryCards: !!this.summaryCards,
+                hasMaterialsBody: !!this.resourcesMaterialsBody,
+                hasWorkmanshipBody: !!this.resourcesWorkmanshipBody,
+                hasLaborBody: !!this.resourcesLaborBody
+            });
+            
+            alert('حدث خطأ أثناء التصدير إلى Excel. يرجى المحاولة مرة أخرى.\n\nالتفاصيل: ' + error.message);
         }
     }
 
     // Add this function after updateSummaryTotal
     updateResourcesTotals() {
-        // Read totals directly from the resource management section
-        let materialsTotal = 0;
-        let workmanshipTotal = 0;
-        let laborTotal = 0;
-        
-        // Get totals from the actual resource management display
-        if (this.resourcesMaterialsBody) {
-            const materialRows = this.resourcesMaterialsBody.querySelectorAll('.resource-row');
-            materialRows.forEach(row => {
-                const totalCostEl = row.querySelector('.total-cost .value');
-                if (totalCostEl) {
-                    const costText = totalCostEl.textContent;
-                    const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
-                    materialsTotal += cost;
-                }
-            });
-        }
-        
-        if (this.resourcesWorkmanshipBody) {
-            const workmanshipRows = this.resourcesWorkmanshipBody.querySelectorAll('.resource-row');
-            workmanshipRows.forEach(row => {
-                const totalCostEl = row.querySelector('.total-cost .value');
-                if (totalCostEl) {
-                    const costText = totalCostEl.textContent;
-                    const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
-                    workmanshipTotal += cost;
-                }
-            });
-        }
-        
-        if (this.resourcesLaborBody) {
-            const laborRows = this.resourcesLaborBody.querySelectorAll('.resource-row');
-            laborRows.forEach(row => {
-                const totalCostEl = row.querySelector('.total-cost .value');
-                if (totalCostEl) {
-                    const costText = totalCostEl.textContent;
-                    const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
-                    laborTotal += cost;
-                }
-            });
-        }
-        
+        try {
+            // Read totals directly from the resource management section
+            let materialsTotal = 0;
+            let workmanshipTotal = 0;
+            let laborTotal = 0;
+            
+            // Get totals from the actual resource management display
+            if (this.resourcesMaterialsBody) {
+                const materialRows = this.resourcesMaterialsBody.querySelectorAll('.resource-row');
+                materialRows.forEach((row, index) => {
+                    try {
+                        const totalCostEl = row.querySelector('.total-cost .value');
+                        if (totalCostEl) {
+                            const costText = totalCostEl.textContent;
+                            const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
+                            materialsTotal += cost;
+                            
+                            if (isNaN(cost)) {
+                                console.warn(`Material row ${index + 1} has invalid cost:`, costText);
+                            }
+                        }
+                    } catch (rowError) {
+                        console.error(`Error processing material row ${index + 1}:`, rowError);
+                    }
+                });
+            }
+            
+            if (this.resourcesWorkmanshipBody) {
+                const workmanshipRows = this.resourcesWorkmanshipBody.querySelectorAll('.resource-row');
+                workmanshipRows.forEach((row, index) => {
+                    try {
+                        const totalCostEl = row.querySelector('.total-cost .value');
+                        if (totalCostEl) {
+                            const costText = totalCostEl.textContent;
+                            const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
+                            workmanshipTotal += cost;
+                            
+                            if (isNaN(cost)) {
+                                console.warn(`Workmanship row ${index + 1} has invalid cost:`, costText);
+                            }
+                        }
+                    } catch (rowError) {
+                        console.error(`Error processing workmanship row ${index + 1}:`, rowError);
+                    }
+                });
+            }
+            
+            if (this.resourcesLaborBody) {
+                const laborRows = this.resourcesLaborBody.querySelectorAll('.resource-row');
+                laborRows.forEach((row, index) => {
+                    try {
+                        const totalCostEl = row.querySelector('.total-cost .value');
+                        if (totalCostEl) {
+                            const costText = totalCostEl.textContent;
+                            const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
+                            laborTotal += cost;
+                            
+                            if (isNaN(cost)) {
+                                console.warn(`Labor row ${index + 1} has invalid cost:`, costText);
+                            }
+                        }
+                    } catch (rowError) {
+                        console.error(`Error processing labor row ${index + 1}:`, rowError);
+                    }
+                });
+            }
+            
         const grandTotal = materialsTotal + workmanshipTotal + laborTotal;
         
-        // Update display elements with formatted numbers
+            // Update display elements with formatted numbers
         const materialsEl = document.getElementById('resourcesMaterialsTotal');
         const workmanshipEl = document.getElementById('resourcesWorkmanshipTotal');
         const laborEl = document.getElementById('resourcesLaborTotal');
         const grandEl = document.getElementById('resourcesGrandTotal');
         
-        if (materialsEl) materialsEl.textContent = this.formatNumber(materialsTotal) + ' جنيه';
-        if (workmanshipEl) workmanshipEl.textContent = this.formatNumber(workmanshipTotal) + ' جنيه';
-        if (laborEl) laborEl.textContent = this.formatNumber(laborTotal) + ' جنيه';
-        if (grandEl) grandEl.textContent = this.formatNumber(grandTotal) + ' جنيه';
-        
-        // Debug log to see what's being calculated
-        console.log('Ribbon Updated:', {
-            materials: materialsTotal,
-            workmanship: workmanshipTotal,
-            labor: laborTotal,
-            grand: grandTotal,
-            materialRows: this.resourcesMaterialsBody ? this.resourcesMaterialsBody.querySelectorAll('.resource-row').length : 0,
-            workmanshipRows: this.resourcesWorkmanshipBody ? this.resourcesWorkmanshipBody.querySelectorAll('.resource-row').length : 0,
-            laborRows: this.resourcesLaborBody ? this.resourcesLaborBody.querySelectorAll('.resource-row').length : 0
-        });
+            if (materialsEl) materialsEl.textContent = this.formatNumber(materialsTotal) + ' جنيه';
+            if (workmanshipEl) workmanshipEl.textContent = this.formatNumber(workmanshipTotal) + ' جنيه';
+            if (laborEl) laborEl.textContent = this.formatNumber(laborTotal) + ' جنيه';
+            if (grandEl) grandEl.textContent = this.formatNumber(grandTotal) + ' جنيه';
+            
+        } catch (error) {
+            console.error('Error updating resources totals:', error);
+        }
+    }
+
+    // Helper function to calculate section total
+    calculateSectionTotal(sectionBody) {
+        try {
+        let total = 0;
+            const rows = sectionBody.querySelectorAll('.resource-row');
+            rows.forEach(row => {
+                try {
+                    const totalCostEl = row.querySelector('.total-cost .value');
+                    if (totalCostEl) {
+                        const costText = totalCostEl.textContent;
+                        const cost = parseFloat(costText.replace(/[^\d.-]/g, '')) || 0;
+                        total += cost;
+                    }
+                } catch (error) {
+                    console.error('Error calculating row cost:', error);
+                }
+            });
+            return this.formatNumber(total) + ' جنيه';
+        } catch (error) {
+            console.error('Error calculating section total:', error);
+            return '0.00 جنيه';
+        }
+    }
+
+    // Helper function to get section total display
+    getSectionTotalDisplay(elementId) {
+        try {
+            const element = document.getElementById(elementId);
+            return element ? element.textContent : '0.00 جنيه';
+        } catch (error) {
+            console.error('Error getting section total display:', error);
+            return '0.00 جنيه';
+        }
+    }
+
+    // Helper function to calculate summary total
+    calculateSummaryTotal() {
+        try {
+            let total = 0;
+            const cards = this.summaryCards.querySelectorAll('.summary-card');
+            cards.forEach(card => {
+                try {
+                    const unitCost = parseFloat(card.cardData?.unitPrice) || 0;
+                    const quantity = parseFloat(card.cardData?.quantity) || 0;
+                    total += unitCost * quantity;
+                } catch (error) {
+                    console.error('Error calculating card total:', error);
+                }
+            });
+            return this.formatNumber(total) + ' جنيه';
+        } catch (error) {
+            console.error('Error calculating summary total:', error);
+            return '0.00 جنيه';
+        }
+    }
+
+    // Helper function to calculate summary selling total
+    calculateSummarySellingTotal() {
+        try {
+            let total = 0;
+            const cards = this.summaryCards.querySelectorAll('.summary-card');
+            cards.forEach(card => {
+                try {
+                    const sellPrice = parseFloat(card.dataset.sellPrice) || parseFloat(card.cardData?.unitPrice) || 0;
+                    const quantity = parseFloat(card.cardData?.quantity) || 0;
+                    total += sellPrice * quantity;
+                } catch (error) {
+                    console.error('Error calculating card selling total:', error);
+                }
+            });
+            return this.formatNumber(total) + ' جنيه';
+        } catch (error) {
+            console.error('Error calculating summary selling total:', error);
+            return '0.00 جنيه';
+        }
+    }
+
+    // Helper function to calculate summary final total
+    calculateSummaryFinalTotal() {
+        try {
+            const sellingTotal = parseFloat(this.calculateSummarySellingTotal().replace(/[^\d.-]/g, '')) || 0;
+            const supervisionPercent = parseFloat(this.supervisionPercentage?.value) || 0;
+            const finalTotal = sellingTotal * (1 + supervisionPercent / 100);
+            return this.formatNumber(finalTotal) + ' جنيه';
+        } catch (error) {
+            console.error('Error calculating summary final total:', error);
+            return '0.00 جنيه';
+        }
     }
 
 }

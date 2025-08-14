@@ -198,6 +198,33 @@
                 </div>
             </div>
 
+            <!-- Collapsible Panel: البنود -->
+            <div class="collapsible-panel" id="summaryPanel">
+                <div class="collapsible-header" id="summaryPanelHeader">
+                    <span>البنود</span>
+                    <button class="collapsible-toggle" aria-expanded="false">+</button>
+                </div>
+                <div class="collapsible-content" id="summaryPanelContent" style="display:none;">
+                    <div class="summary-section" id="summarySection">
+                        <h2 class="panel-title">البنود</h2>
+                        <button id="exportExcelBtn" class="export-excel-btn">تصدير Excel</button>
+                        <button id="summaryUndoBtn" class="summary-undo-btn" style="display:none;" title="تراجع عن الحذف">
+                            <span class="undo-icon">&#8630;</span>
+                        </button>
+                        <div id="summaryCards" class="summary-cards"></div>
+                        <div class="summary-total" id="summaryTotal"></div>
+                        <div class="summary-selling-total" id="summarySellingTotal"></div>
+                        <div class="supervision-section">
+                            <div class="supervision-input-group">
+                                <label for="supervisionPercentage">نسبة الاشراف (%)</label>
+                                <input type="number" id="supervisionPercentage" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="summary-final-total" id="summaryFinalTotal"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Collapsible Panel: إدارة الموارد -->
             <div class="collapsible-panel" id="resourcesPanel">
                 <div class="collapsible-header" id="resourcesPanelHeader">
@@ -252,24 +279,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="summary-section" id="summarySection">
-                <h2 class="panel-title">البنود</h2>
-                <button id="exportExcelBtn" class="export-excel-btn">تصدير Excel</button>
-                <button id="summaryUndoBtn" class="summary-undo-btn" style="display:none;" title="تراجع عن الحذف">
-                    <span class="undo-icon">&#8630;</span>
-                </button>
-                <div id="summaryCards" class="summary-cards"></div>
-                <div class="summary-total" id="summaryTotal"></div>
-                <div class="summary-selling-total" id="summarySellingTotal"></div>
-                <div class="supervision-section">
-                    <div class="supervision-input-group">
-                        <label for="supervisionPercentage">نسبة الاشراف (%)</label>
-                        <input type="number" id="supervisionPercentage" min="0" step="0.01" placeholder="0.00">
-                    </div>
-                </div>
-                <div class="summary-final-total" id="summaryFinalTotal"></div>
             </div>
         </main>
     </div>
