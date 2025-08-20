@@ -1744,24 +1744,28 @@ tbody tr:hover {
 
 
 
-.export-excel-btn,
 .export-html-btn {
   background: var(--accent);
   color: var(--bg-primary);
-  border: none;
+  border: 1px solid var(--accent);
   border-radius: 6px;
   padding: 8px 22px;
   font-size: 1.08rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   margin-left: 12px;
   margin-bottom: 10px;
   transition: background 0.2s;
+  box-shadow: 0 0 0 2px rgba(255, 179, 0, 0.12), 0 6px 18px rgba(255, 179, 0, 0.22);
 }
 
-.export-excel-btn:hover,
 .export-html-btn:hover {
   background: var(--accent-hover);
+}
+
+.export-html-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Unified Dark Theme with Gold Accent */
@@ -1814,7 +1818,7 @@ td, .modal-accordion td {
 }
 
 /* Buttons: gold with white text, strong highlight on hover/focus */
-button, .save-item-btn, .project-action-btn, .export-excel-btn, .details-btn, .clear-search {
+button, .save-item-btn, .project-action-btn, .details-btn, .clear-search {
     background: var(--accent) !important;
     color: #fff !important;
     border: none;
@@ -1823,7 +1827,7 @@ button, .save-item-btn, .project-action-btn, .export-excel-btn, .details-btn, .c
     box-shadow: 0 0 0 0px var(--accent);
     transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
-button:hover, .save-item-btn:hover, .project-action-btn:hover, .export-excel-btn:hover, .details-btn:hover, .clear-search:hover {
+button:hover, .save-item-btn:hover, .project-action-btn:hover, .details-btn:hover, .clear-search:hover {
     background: var(--accent-hover) !important;
     color: #fff !important;
     box-shadow: 0 0 8px 2px var(--accent);
@@ -3680,15 +3684,7 @@ input[type="number"]:focus {
 
 
 
-.export-btn.excel {
-    background: var(--success);
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-}
 
-.export-btn.excel:hover {
-    background: var(--success);
-    opacity: 0.9;
-}
 
 @media (max-width: 700px) {
     .resources-total-row {

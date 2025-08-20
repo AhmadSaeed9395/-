@@ -84,10 +84,10 @@ class ConstructionCalculator {
         this.enhanceNumberInputs();
 
 
-        // Export Excel button logic
-        const exportExcelBtn = document.getElementById('exportExcelBtn');
-        if (exportExcelBtn) {
-            exportExcelBtn.onclick = () => this.exportProjectToExcel();
+        // Export Summary HTML button logic
+        const exportSummaryHtmlBtn = document.getElementById('exportSummaryHtmlBtn');
+        if (exportSummaryHtmlBtn) {
+            exportSummaryHtmlBtn.onclick = () => this.exportSummaryToHtml();
         }
 
         // Export Resources HTML button logic
@@ -95,6 +95,8 @@ class ConstructionCalculator {
         if (exportResourcesHtmlBtn) {
             exportResourcesHtmlBtn.onclick = () => this.exportResourcesToHtml();
         }
+
+        // (already bound above)
 
         // In constructor after loadPricesSection
         this.loadPricesSection();
@@ -3293,30 +3295,9 @@ class ConstructionCalculator {
         return `<div class="modal-accordion">${accordionItems}</div>`;
     }
 
-
-
-
-    exportProjectToExcel() {
+    // Export Resources Management section to HTML with three separate files
+    exportResourcesToHtml() {
         try {
-            // Check if XLSX library is loaded
-            if (typeof XLSX === 'undefined') {
-                alert('مكتبة Excel غير محملة. يرجى التأكد من تحميل الصفحة بشكل صحيح.');
-            return;
-        }
-
-            // Test basic XLSX functionality
-            try {
-                const testWb = XLSX.utils.book_new();
-                const testData = [['Test', 'Data']];
-                const testSheet = XLSX.utils.aoa_to_sheet(testData);
-                XLSX.utils.book_append_sheet(testWb, testSheet, 'Test');
-                console.log('Basic XLSX functionality test passed');
-            } catch (testError) {
-                console.error('Basic XLSX functionality test failed:', testError);
-                alert('مشكلة في مكتبة Excel. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
-                return;
-            }
-
         // Get current project
         const proj = this.projects[this.currentProjectId];
         if (!proj) {
@@ -3324,392 +3305,10 @@ class ConstructionCalculator {
             return;
         }
 
-            // Check if required elements exist
-            if (!this.summaryCards) {
-                alert('عناصر الصفحة غير جاهزة. يرجى المحاولة مرة أخرى.');
-                return;
-            }
-
-            console.log('Starting Excel export for project:', proj.name);
-
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            
-            // Set workbook-level RTL
-            wb.Workbook = {
-                Views: [
-                    {
-                        RTL: true
-                    }
-                ]
-            };
-
-            // Get the resources summary data once for all sheets
-        const resourcesSummary = this.getResourcesSummary();
-            console.log('Resources summary for export:', resourcesSummary);
-            
-            if (!resourcesSummary || Object.keys(resourcesSummary).length === 0) {
-                console.warn('No resources data found for export');
-            }
-
-            // 1. Project Overview Sheet (معلومات المشروع)
-            const projectData = [
-                ['معلومات المشروع', ''],
-                ['اسم المشروع', proj.name],
-                ['كود المشروع', proj.code],
-                ['نوع المشروع', proj.type],
-                ['المساحة', `${this.formatNumber(proj.area)} م²`],
-                ['عدد الأدوار', proj.floor],
-                ['', ''],
-                ['تاريخ التصدير', new Date().toISOString().split('T')[0]],
-                ['وقت التصدير', new Date().toTimeString().split(' ')[0]]
-            ];
-
-            const projectSheet = XLSX.utils.aoa_to_sheet(projectData);
-            projectSheet['!rtl'] = true;
-            
-            // Set column widths for project sheet
-            projectSheet['!cols'] = [
-                { width: 25 },
-                { width: 35 }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, projectSheet, 'معلومات المشروع');
-            console.log('Project overview sheet added');
-
-            // 2. Materials Sheet (الخامات)
-            if (this.resourcesMaterialsBody) {
-                console.log('Processing materials sheet...');
-                
-                const materialsData = [
-                    ['إدارة الموارد - الخامات', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    ['اسم المورد', 'الوحدة', 'الكمية', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)', 'ملاحظات'],
-                    ['', '', '', '', '']
-                ];
-
-                // Get the actual data from the summary instead of parsing DOM
-                const resourcesSummary = this.getResourcesSummary();
-                const materialsResources = Object.entries(resourcesSummary).filter(([resource, data]) => data.type === 'خامات');
-                
-                console.log('Materials resources from summary:', materialsResources);
-                
-                materialsResources.forEach(([resource, data]) => {
-                    try {
-                        const resourceName = resource;
-                        const unit = data.unit || '';
-                        const actualQuantity = this.formatNumber(data.totalAmount);
-                        
-                        // Calculate unit price from total cost / total amount
-                        let unitPrice = '';
-                        if (data.totalAmount > 0) {
-                            unitPrice = this.formatNumber(data.totalCost / data.totalAmount);
-                        }
-                        
-                        const totalCost = this.formatNumber(data.totalCost) + ' جنيه';
-
-                        console.log(`Adding material: ${resourceName}, unit: ${unit}, quantity: ${actualQuantity}, unitPrice: ${unitPrice}, totalCost: ${totalCost}`);
-                        
-                        materialsData.push([resourceName, unit, actualQuantity, unitPrice, totalCost, '']);
-                    } catch (error) {
-                        console.error('Error processing material resource:', error);
-                    }
-                });
-
-                // Add totals section
-                const materialsTotal = this.calculateSectionTotal(this.resourcesMaterialsBody);
-                materialsData.push(['', '', '', '', '', '']);
-                materialsData.push(['', '', '', '', '', '']);
-                materialsData.push(['إجمالي تكلفة الخامات', '', '', '', materialsTotal, '']);
-                materialsData.push(['', '', '', '', '', '']);
-                materialsData.push(['ملاحظات', 'تشمل جميع المواد الأساسية المطلوبة للمشروع', '', '', '', '']);
-
-                const materialsSheet = XLSX.utils.aoa_to_sheet(materialsData);
-                materialsSheet['!rtl'] = true;
-                materialsSheet['!cols'] = [
-                    { width: 35 }, // اسم المورد
-                    { width: 15 }, // الوحدة
-                    { width: 15 }, // الكمية
-                    { width: 25 }, // سعر الوحدة
-                    { width: 30 }, // التكلفة الإجمالية
-                    { width: 25 }  // ملاحظات
-                ];
-
-                XLSX.utils.book_append_sheet(wb, materialsSheet, 'الخامات');
-                console.log('Materials sheet added');
-            }
-
-            // 3. Workmanship Sheet (المصنعيات)
-            if (this.resourcesWorkmanshipBody) {
-                console.log('Processing workmanship sheet...');
-                
-                const workmanshipData = [
-                    ['إدارة الموارد - المصنعيات', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    ['اسم المورد', 'الوحدة', 'الكمية', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)', 'ملاحظات'],
-                    ['', '', '', '', '']
-                ];
-
-                // Get the actual data from the summary instead of parsing DOM
-                const workmanshipResources = Object.entries(resourcesSummary).filter(([resource, data]) => data.type === 'مصنعيات');
-                
-                console.log('Workmanship resources from summary:', workmanshipResources);
-                
-                workmanshipResources.forEach(([resource, data]) => {
-                    try {
-                        const resourceName = resource;
-                        const unit = data.unit || '';
-                        const actualQuantity = this.formatNumber(data.totalAmount);
-                        
-                        // Calculate unit price from total cost / total amount
-                        let unitPrice = '';
-                        if (data.totalAmount > 0) {
-                            unitPrice = this.formatNumber(data.totalCost / data.totalAmount);
-                        }
-                        
-                        const totalCost = this.formatNumber(data.totalCost) + ' جنيه';
-
-                        console.log(`Adding workmanship: ${resourceName}, unit: ${unit}, quantity: ${actualQuantity}, unitPrice: ${unitPrice}, totalCost: ${totalCost}`);
-                        
-                        workmanshipData.push([resourceName, unit, actualQuantity, unitPrice, totalCost, '']);
-                    } catch (error) {
-                        console.error('Error processing workmanship resource:', error);
-                    }
-                });
-
-                // Add totals section
-                const workmanshipTotal = this.calculateSectionTotal(this.resourcesWorkmanshipBody);
-                workmanshipData.push(['', '', '', '', '', '']);
-                workmanshipData.push(['', '', '', '', '', '']);
-                workmanshipData.push(['إجمالي تكلفة المصنعيات', '', '', '', workmanshipTotal, '']);
-                workmanshipData.push(['', '', '', '', '', '']);
-                workmanshipData.push(['ملاحظات', 'تشمل جميع المصنعيات والمنتجات الجاهزة', '', '', '', '']);
-
-                const workmanshipSheet = XLSX.utils.aoa_to_sheet(workmanshipData);
-                workmanshipSheet['!rtl'] = true;
-                workmanshipSheet['!cols'] = [
-                    { width: 35 }, // اسم المورد
-                    { width: 15 }, // الوحدة
-                    { width: 15 }, // الكمية
-                    { width: 25 }, // سعر الوحدة
-                    { width: 30 }, // التكلفة الإجمالية
-                    { width: 25 }  // ملاحظات
-                ];
-
-                XLSX.utils.book_append_sheet(wb, workmanshipSheet, 'المصنعيات');
-                console.log('Workmanship sheet added');
-            }
-
-            // 4. Labor Sheet (العمالة)
-            if (this.resourcesLaborBody) {
-                console.log('Processing labor sheet...');
-                
-                const laborData = [
-                    ['إدارة الموارد - العمالة', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    ['اسم المورد', 'الوحدة', 'الكمية', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)', 'ملاحظات'],
-                    ['', '', '', '', '']
-                ];
-
-                // Get the actual data from the summary instead of parsing DOM
-                const laborResources = Object.entries(resourcesSummary).filter(([resource, data]) => data.type === 'عمالة');
-                
-                console.log('Labor resources from summary:', laborResources);
-                
-                laborResources.forEach(([resource, data]) => {
-                    try {
-                        const resourceName = resource;
-                        const unit = data.unit || '';
-                        const actualQuantity = this.formatNumber(data.totalAmount);
-                        
-                        // Calculate unit price from total cost / total amount
-                        let unitPrice = '';
-                        if (data.totalAmount > 0) {
-                            unitPrice = this.formatNumber(data.totalCost / data.totalAmount);
-                        }
-                        
-                        const totalCost = this.formatNumber(data.totalCost) + ' جنيه';
-
-                        console.log(`Adding labor: ${resourceName}, unit: ${unit}, quantity: ${actualQuantity}, unitPrice: ${unitPrice}, totalCost: ${totalCost}`);
-                        
-                        laborData.push([resourceName, unit, actualQuantity, unitPrice, totalCost, '']);
-                    } catch (error) {
-                        console.error('Error processing labor resource:', error);
-                    }
-                });
-
-                // Add totals section
-                const laborTotal = this.calculateSectionTotal(this.resourcesLaborBody);
-                laborData.push(['', '', '', '', '', '']);
-                laborData.push(['', '', '', '', '', '']);
-                laborData.push(['إجمالي تكلفة العمالة', '', '', '', laborTotal, '']);
-                laborData.push(['', '', '', '', '', '']);
-                laborData.push(['ملاحظات', 'تشمل جميع خدمات العمالة والتنفيذ', '', '', '', '']);
-
-                const laborSheet = XLSX.utils.aoa_to_sheet(laborData);
-                laborSheet['!rtl'] = true;
-                laborSheet['!cols'] = [
-                    { width: 35 }, // اسم المورد
-                    { width: 15 }, // الوحدة
-                    { width: 15 }, // الكمية
-                    { width: 25 }, // سعر الوحدة
-                    { width: 30 }, // التكلفة الإجمالية
-                    { width: 25 }  // ملاحظات
-                ];
-
-                XLSX.utils.book_append_sheet(wb, laborSheet, 'العمالة');
-                console.log('Labor sheet added');
-            }
-
-            // 5. Summary Sheet (الملخص)
-            console.log('Processing summary sheet...');
-            const summaryData = [
-                ['ملخص المشروع - البنود', '', '', '', '', ''],
-                ['', '', '', '', '', ''],
-                ['', '', '', '', '', ''],
-                ['البند الرئيسي', 'البند الفرعي', 'الكمية', 'الوحدة', 'سعر الوحدة (جنيه)', 'التكلفة الإجمالية (جنيه)'],
-                ['', '', '', '', '', '']
-            ];
-
-            // Add SELECTED summary cards data only
-            const selectedCards = this.getSelectedCards();
-            console.log('Found selected summary cards:', selectedCards.length);
-            
-            selectedCards.forEach(card => {
-                try {
-                    const cardData = card.cardData;
-                    if (cardData) {
-                        summaryData.push([
-                            cardData.mainItem || '',
-                            cardData.subItem || '',
-                            this.formatNumber(cardData.quantity) || '',
-                            cardData.unit || '',
-                            this.formatNumber(cardData.unitPrice) || '',
-                            this.formatNumber(cardData.total) || ''
-                        ]);
-                    }
-                } catch (error) {
-                    console.error('Error processing summary card:', error);
-                }
-            });
-
-            // Add summary totals
-            const summaryTotal = this.calculateSummaryTotal();
-            const summarySellingTotal = this.calculateSummarySellingTotal();
-            const summaryFinalTotal = this.calculateSummaryFinalTotal();
-
-            summaryData.push(['', '', '', '', '', '']);
-            summaryData.push(['', '', '', '', '', '']);
-            summaryData.push(['إجمالي التكلفة الأساسية', '', '', '', '', summaryTotal]);
-            summaryData.push(['إجمالي سعر البيع', '', '', '', '', summarySellingTotal]);
-            summaryData.push(['إجمالي سعر البيع النهائي', '', '', '', '', summaryFinalTotal]);
-            summaryData.push(['', '', '', '', '', '']);
-            summaryData.push(['ملاحظات', 'تشمل جميع بنود المشروع مع حسابات المخاطر والضرائب', '', '', '', '']);
-
-            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-            summarySheet['!rtl'] = true;
-            summarySheet['!cols'] = [
-                { width: 25 }, // البند الرئيسي
-                { width: 25 }, // البند الفرعي
-                { width: 15 }, // الكمية
-                { width: 15 }, // الوحدة
-                { width: 25 }, // سعر الوحدة
-                { width: 30 }  // التكلفة الإجمالية
-            ];
-
-            XLSX.utils.book_append_sheet(wb, summarySheet, 'الملخص');
-            console.log('Summary sheet added');
-
-            // 6. Totals Overview Sheet (الإجماليات)
-            console.log('Processing totals sheet...');
-            const totalsData = [
-                ['إجماليات المشروع - ملخص شامل', ''],
-                ['', ''],
-                ['', ''],
-                ['تفاصيل التكاليف', 'المبلغ (جنيه)'],
-                ['', ''],
-                ['إجمالي تكلفة الخامات', this.getSectionTotalDisplay('resourcesMaterialsTotal')],
-                ['إجمالي تكلفة المصنعيات', this.getSectionTotalDisplay('resourcesWorkmanshipTotal')],
-                ['إجمالي تكلفة العمالة', this.getSectionTotalDisplay('resourcesLaborTotal')],
-                ['', ''],
-                ['المجموع الكلي للموارد', this.getSectionTotalDisplay('resourcesGrandTotal')],
-                ['', ''],
-                ['إجمالي التكلفة الأساسية', summaryTotal],
-                ['إجمالي سعر البيع', summarySellingTotal],
-                ['إجمالي سعر البيع النهائي', summaryFinalTotal],
-                ['', ''],
-                ['ملاحظات', 'تم حساب جميع التكاليف بناءً على البيانات المدخلة في النظام']
-            ];
-
-            const totalsSheet = XLSX.utils.aoa_to_sheet(totalsData);
-            totalsSheet['!rtl'] = true;
-            totalsSheet['!cols'] = [
-                { width: 40 },
-                { width: 30 }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, totalsSheet, 'الإجماليات');
-            console.log('Totals sheet added');
-
-            // Set default row height for all sheets
-            if (wb.Sheets && typeof wb.Sheets === 'object') {
-                Object.keys(wb.Sheets).forEach(sheetName => {
-                    if (wb.Sheets[sheetName]) {
-                        wb.Sheets[sheetName]['!rows'] = Array(50).fill({ hpt: 20 });
-                    }
-                });
-            }
-
-            console.log('All sheets prepared, starting download...');
-
-            // Download the file
-            const fileName = `${proj.name || 'مشروع'}_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            
-            console.log('File downloaded successfully:', fileName);
-            
-            // Success message
-            alert(`تم تصدير المشروع بنجاح إلى ملف: ${fileName}`);
-
-        } catch (error) {
-            console.error('Error exporting to Excel:', error);
-            console.error('Error details:', {
-                message: error.message,
-                stack: error.stack,
-                name: error.name
-            });
-            
-            // Check specific conditions that might cause failure
-            console.log('Debug info:', {
-                hasXLSX: typeof XLSX !== 'undefined',
-                hasProject: !!this.projects[this.currentProjectId],
-                hasSummaryCards: !!this.summaryCards,
-                hasMaterialsBody: !!this.resourcesMaterialsBody,
-                hasWorkmanshipBody: !!this.resourcesWorkmanshipBody,
-                hasLaborBody: !!this.resourcesLaborBody
-            });
-            
-            alert('حدث خطأ أثناء التصدير إلى Excel. يرجى المحاولة مرة أخرى.\n\nالتفاصيل: ' + error.message);
-        }
-    }
-
-    // Export Resources Management section to HTML with three separate files
-    exportResourcesToHtml() {
-        try {
-            // Get current project
-            const proj = this.projects[this.currentProjectId];
-            if (!proj) {
-                alert('لا يوجد مشروع محدد.');
-                return;
-            }
-
             console.log('Starting Resources HTML export for project:', proj.name);
 
             // Get the resources summary data
-            const resourcesSummary = this.getResourcesSummary();
+        const resourcesSummary = this.getResourcesSummary();
             console.log('Resources summary for export:', resourcesSummary);
             
             if (!resourcesSummary || Object.keys(resourcesSummary).length === 0) {
@@ -3910,6 +3509,248 @@ class ConstructionCalculator {
             margin-bottom: 10px;
             border-bottom: 1px solid #dee2e6;
             padding-bottom: 5px;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        
+        .usage-details h4:hover {
+            color: #007bff;
+        }
+        
+        .usage-details h4::after {
+            content: ' ▼';
+            font-size: 0.8em;
+            color: #007bff;
+            transition: transform 0.2s;
+        }
+        
+        .usage-details h4.collapsed::after {
+            content: ' ▶';
+        }
+        
+        .usage-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            max-height: 1000px;
+        }
+        
+        .usage-content.collapsed {
+            max-height: 0;
+        }
+        
+        .expand-all-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+        
+        .expand-all-btn:hover {
+            background: #0056b3;
+        }
+        
+        /* Progress bars and charts */
+        .progress-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .progress-item {
+            margin-bottom: 15px;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        }
+        
+        .progress-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Bar chart */
+        .chart-container {
+            margin: 30px 0;
+            padding: 25px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            text-align: center;
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            height: 200px;
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+        
+        .bar {
+            background: linear-gradient(to top, #007bff, #0056b3);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            min-width: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            color: #6c757d;
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            color: #007bff;
+            font-weight: 600;
+        }
+        
+        /* Resource type cards */
+        .resource-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .resource-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+            transition: transform 0.2s;
+        }
+        
+        .resource-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .resource-card-title {
+            color: #007bff;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .resource-card-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .resource-card-subtitle {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        /* Icons and visual elements */
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-top: 3px solid #007bff;
+        }
+        
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
         }
         
         .usage-table {
@@ -3956,8 +3797,13 @@ class ConstructionCalculator {
 <body>
     <div class="container">
         <div class="header">
-            <h1>${resourceType}</h1>
+            <h1>📊 ${resourceType}</h1>
             <div class="subtitle">إدارة الموارد - ${proj.name}</div>
+            <div style="margin-top: 15px; opacity: 0.8; font-size: 0.9em;">
+                <span style="margin: 0 10px;">📅 ${currentDate}</span>
+                <span style="margin: 0 10px;">⏰ ${currentTime}</span>
+                <span style="margin: 0 10px;">🏗️ ${proj.type}</span>
+            </div>
         </div>
         
         <div class="project-info">
@@ -3984,6 +3830,96 @@ class ConstructionCalculator {
         </div>
         
         <div style="padding: 20px;">
+            <!-- Statistics Overview -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">${typeResources.length}</div>
+                    <div class="stat-label">إجمالي الموارد</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${this.formatNumber(resourceTotal)}</div>
+                    <div class="stat-label">إجمالي التكلفة (جنيه)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${this.formatNumber(typeResources.reduce((sum, [resource, data]) => sum + data.usages.reduce((s, u) => s + u.amount, 0), 0))}</div>
+                    <div class="stat-label">إجمالي الكميات</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${this.formatNumber(typeResources.reduce((sum, [resource, data]) => sum + data.usages.length, 0))}</div>
+                    <div class="stat-label">إجمالي البنود المستخدمة</div>
+                </div>
+            </div>
+            
+            <!-- Cost Distribution Progress Bars -->
+            <div class="progress-container">
+                <h3 style="color: #495057; margin-bottom: 20px; text-align: center;">توزيع التكاليف حسب الموارد</h3>
+                ${typeResources.map(([resource, data]) => {
+                    const totalCost = data.usages.reduce((sum, u) => sum + u.cost, 0);
+                    const percentage = resourceTotal > 0 ? (totalCost / resourceTotal) * 100 : 0;
+                    return `
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>${resource}</span>
+                            <span>${this.formatNumber(totalCost)} جنيه (${percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            <!-- Top Resources Bar Chart -->
+            <div class="chart-container">
+                <div class="chart-title">أعلى 5 موارد من حيث التكلفة</div>
+                <div class="bar-chart">
+                    ${typeResources
+                        .sort((a, b) => {
+                            const costA = a[1].usages.reduce((sum, u) => sum + u.cost, 0);
+                            const costB = b[1].usages.reduce((sum, u) => sum + u.cost, 0);
+                            return costB - costA;
+                        })
+                        .slice(0, 5)
+                        .map(([resource, data], index) => {
+                            const totalCost = data.usages.reduce((sum, u) => sum + u.cost, 0);
+                            const maxCost = typeResources.reduce((max, [r, d]) => {
+                                const cost = d.usages.reduce((sum, u) => sum + u.cost, 0);
+                                return Math.max(max, cost);
+                            }, 0);
+                            const height = maxCost > 0 ? (totalCost / maxCost) * 100 : 0;
+                            return `
+                            <div class="bar" style="height: ${height}%">
+                                <div class="bar-value">${this.formatNumber(totalCost)}</div>
+                                <div class="bar-label">${resource.length > 12 ? resource.substring(0, 12) + '...' : resource}</div>
+                            </div>
+                            `;
+                        }).join('')}
+                </div>
+            </div>
+            
+            <!-- Resource Type Distribution Cards -->
+            <div class="resource-cards">
+                ${typeResources.map(([resource, data]) => {
+                    const totalCost = data.usages.reduce((sum, u) => sum + u.cost, 0);
+                    const totalQuantity = data.usages.reduce((sum, u) => sum + u.amount, 0);
+                    const usageCount = data.usages.length;
+                    const percentage = resourceTotal > 0 ? (totalCost / resourceTotal) * 100 : 0;
+                    
+                    return `
+                    <div class="resource-card">
+                        <div class="resource-card-title">${resource}</div>
+                        <div class="resource-card-value">${this.formatNumber(totalCost)} جنيه</div>
+                        <div class="resource-card-subtitle">
+                            الكمية: ${this.formatNumber(totalQuantity)} ${data.unit || ''} | 
+                            البنود: ${usageCount} | 
+                            النسبة: ${percentage.toFixed(1)}%
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+            
             <table class="resources-table">
                 <thead>
                     <tr>
@@ -4019,37 +3955,40 @@ class ConstructionCalculator {
             
             <div class="usage-details">
                 <h3>تفاصيل استخدام الموارد</h3>
-                ${typeResources.map(([resource, data]) => {
+                <button class="expand-all-btn" onclick="toggleAllUsageDetails()">توسيع/طي الكل</button>
+                ${typeResources.map(([resource, data], index) => {
                     const totalCost = data.usages.reduce((sum, u) => sum + u.cost, 0);
                     const totalQuantity = data.usages.reduce((sum, u) => sum + u.amount, 0);
                     
                     return `
                     <div style="margin-bottom: 20px;">
-                        <h4 style="color: #495057; margin-bottom: 10px; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">
+                        <h4 class="usage-header" onclick="toggleUsageDetails(${index})" style="color: #495057; margin-bottom: 10px; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">
                             ${resource} - إجمالي: ${this.formatNumber(totalCost)} جنيه
                         </h4>
-                        <table class="usage-table">
-                            <thead>
-                                <tr>
-                                    <th>رقم البند</th>
-                                    <th>اسم البند</th>
-                                    <th>الكمية</th>
-                                    <th>الوحدة</th>
-                                    <th>التكلفة</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.usages.map((u, index) => `
-                                <tr>
-                                    <td>${index + 1}</td>
-                                    <td>${u.itemTitle}</td>
-                                    <td>${this.formatNumber(u.amount)}</td>
-                                    <td>${u.unit}</td>
-                                    <td>${this.formatNumber(u.cost)} جنيه</td>
-                                </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                        <div class="usage-content" id="usage-content-${index}">
+                            <table class="usage-table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم البند</th>
+                                        <th>اسم البند</th>
+                                        <th>الكمية</th>
+                                        <th>الوحدة</th>
+                                        <th>التكلفة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.usages.map((u, usageIndex) => `
+                                    <tr>
+                                        <td>${usageIndex + 1}</td>
+                                        <td>${u.itemTitle}</td>
+                                        <td>${this.formatNumber(u.amount)}</td>
+                                        <td>${u.unit}</td>
+                                        <td>${this.formatNumber(u.cost)} جنيه</td>
+                                    </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     `;
                 }).join('')}
@@ -4061,6 +4000,53 @@ class ConstructionCalculator {
             <p>تاريخ التصدير: ${currentDate} | وقت التصدير: ${currentTime}</p>
         </div>
     </div>
+    
+    <script>
+        // Function to toggle individual usage details
+        function toggleUsageDetails(index) {
+            const content = document.getElementById('usage-content-' + index);
+            const header = content.previousElementSibling;
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                header.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                header.classList.add('collapsed');
+            }
+        }
+        
+        // Function to toggle all usage details
+        function toggleAllUsageDetails() {
+            const contents = document.querySelectorAll('.usage-content');
+            const headers = document.querySelectorAll('.usage-header');
+            const button = document.querySelector('.expand-all-btn');
+            
+            const allCollapsed = Array.from(contents).every(content => 
+                content.classList.contains('collapsed')
+            );
+            
+            if (allCollapsed) {
+                // Expand all
+                contents.forEach(content => content.classList.remove('collapsed'));
+                headers.forEach(header => header.classList.remove('collapsed'));
+                button.textContent = 'طي الكل';
+            } else {
+                // Collapse all
+                contents.forEach(content => content.classList.add('collapsed'));
+                headers.forEach(header => header.classList.add('collapsed'));
+                button.textContent = 'توسيع الكل';
+            }
+        }
+        
+        // Initialize: start with all details expanded
+        document.addEventListener('DOMContentLoaded', function() {
+            const button = document.querySelector('.expand-all-btn');
+            if (button) {
+                button.textContent = 'طي الكل';
+            }
+        });
+    </script>
 </body>
 </html>`;
     }
@@ -4277,6 +4263,200 @@ class ConstructionCalculator {
             console.error('Error calculating summary final total:', error);
             return '0.00 جنيه';
         }
+    }
+
+    // Export the summary (البنود) section to a single HTML file
+    exportSummaryToHtml() {
+        try {
+            const proj = this.projects[this.currentProjectId];
+            if (!proj) {
+                alert('لا يوجد مشروع محدد.');
+                return;
+            }
+
+            const selectedCards = this.getSelectedCards();
+            if (!selectedCards || selectedCards.length === 0) {
+                alert('يرجى تحديد بنود للتصدير.');
+                return;
+            }
+
+            const items = selectedCards.map((card, index) => {
+                const d = card.cardData || {};
+                const unitPrice = parseFloat(d.unitPrice) || 0;
+                const quantity = parseFloat(d.quantity) || 0;
+                const wastePercent = parseFloat(d.wastePercent) || 0;
+                const operationPercent = parseFloat(d.operationPercent) || 0;
+                const riskPercentage = parseFloat(d.riskPercentage) || 0;
+                const taxPercentage = parseFloat(d.taxPercentage) || 14;
+                const adjustedUnitCost = unitPrice * (1 + wastePercent/100 + operationPercent/100);
+                const sellPrice = unitPrice * (1 + riskPercentage/100) * (1 + taxPercentage/100);
+                const totalCost = adjustedUnitCost * quantity;
+                const totalSell = sellPrice * quantity;
+                return {
+                    index: index + 1,
+                    mainItem: d.mainItem || '',
+                    subItem: d.subItem || '',
+                    unit: d.unit || '',
+                    quantity,
+                    adjustedUnitCost,
+                    sellPrice,
+                    totalCost,
+                    totalSell
+                };
+            });
+
+            const summaryTotal = items.reduce((s, it) => s + it.totalCost, 0);
+            const summarySellingTotal = items.reduce((s, it) => s + it.totalSell, 0);
+            const supervisionPercent = parseFloat(this.supervisionPercentage?.value) || 0;
+            const summaryFinalTotal = summarySellingTotal * (1 + supervisionPercent/100);
+
+            const currentDate = new Date().toISOString().split('T')[0];
+            const currentTime = new Date().toTimeString().split(' ')[0];
+
+            const html = this.generateSummaryHtml({ proj, items, summaryTotal, summarySellingTotal, summaryFinalTotal, supervisionPercent, currentDate, currentTime });
+            const fileName = `${proj.name || 'مشروع'}_البنود_${currentDate}.html`;
+            this.downloadHtmlFile(html, fileName);
+        } catch (error) {
+            console.error('Error exporting summary to HTML:', error);
+            alert('حدث خطأ أثناء التصدير إلى HTML. يرجى المحاولة مرة أخرى.');
+        }
+    }
+
+    generateSummaryHtml(ctx) {
+        const { proj, items, summaryTotal, summarySellingTotal, summaryFinalTotal, supervisionPercent, currentDate, currentTime } = ctx;
+        return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${proj.name} - البنود</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; line-height: 1.6; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 30px; text-align: center; }
+        .header h1 { font-weight: 300; margin: 0 0 8px; }
+        .project-info { background: #f8f9fa; padding: 20px; border-bottom: 1px solid #e9ecef; }
+        .project-info table { width: 100%; border-collapse: collapse; }
+        .project-info td { padding: 8px 12px; border-bottom: 1px solid #e9ecef; }
+        .project-info td:first-child { font-weight: 700; color: #495057; width: 200px; }
+        .summary-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .summary-table th { background: #495057; color: #fff; padding: 12px; text-align: center; border: 1px solid #6c757d; }
+        .summary-table td { padding: 10px 12px; border: 1px solid #dee2e6; text-align: center; }
+        .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 20px 0; }
+        .total-card { background: #fff; border-left: 4px solid #28a745; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .total-card h3 { margin: 0 0 8px; color: #28a745; }
+        .total-card .value { font-size: 1.4em; font-weight: 800; color: #495057; }
+        .usage-details { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px; margin: 20px 0; }
+        .usage-details h3 { color: #495057; text-align:center; margin-bottom: 10px; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+        .item-card { margin-bottom: 14px; }
+        .item-header { color: #495057; margin-bottom: 8px; border-bottom: 1px solid #dee2e6; padding-bottom: 4px; cursor: pointer; user-select: none; }
+        .item-header::after { content: ' ▼'; color: #007bff; font-size: 0.85em; }
+        .item-header.collapsed::after { content: ' ▶'; }
+        .item-content { overflow: hidden; transition: max-height .3s ease; max-height: 800px; }
+        .item-content.collapsed { max-height: 0; }
+        .expand-all-btn { background: #007bff; color: #fff; border: none; border-radius: 5px; padding: 8px 16px; margin-bottom: 12px; cursor: pointer; font-size: 0.95em; transition: background .2s; }
+        .expand-all-btn:hover { background: #0056b3; }
+        .footer { background: #343a40; color: #fff; text-align: center; padding: 20px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📑 البنود - ${proj.name}</h1>
+            <div style="margin-top:8px;opacity:.85">📅 ${currentDate} • ⏰ ${currentTime}</div>
+        </div>
+        <div class="project-info">
+            <table>
+                <tr><td>اسم المشروع:</td><td>${proj.name}</td><td>كود المشروع:</td><td>${proj.code}</td></tr>
+                <tr><td>نوع المشروع:</td><td>${proj.type}</td><td>المساحة:</td><td>${this.formatNumber(proj.area)} م²</td></tr>
+                <tr><td>عدد الأدوار:</td><td>${proj.floor}</td><td>نسبة الإشراف:</td><td>${supervisionPercent}%</td></tr>
+            </table>
+        </div>
+        <div style="padding:20px;">
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>البند الرئيسي</th>
+                        <th>البند الفرعي</th>
+                        <th>الوحدة</th>
+                        <th>الكمية</th>
+                        <th>تكلفة الوحدة</th>
+                        <th>سعر البيع</th>
+                        <th>إجمالي التكلفة</th>
+                        <th>إجمالي البيع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map((it, idx) => `
+                        <tr>
+                            <td>${idx+1}</td>
+                            <td>${it.mainItem}</td>
+                            <td>${it.subItem}</td>
+                            <td>${it.unit}</td>
+                            <td>${this.formatNumber(it.quantity)}</td>
+                            <td>${this.formatNumber(it.adjustedUnitCost)}</td>
+                            <td>${this.formatNumber(it.sellPrice)}</td>
+                            <td>${this.formatNumber(it.totalCost)}</td>
+                            <td>${this.formatNumber(it.totalSell)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="totals">
+                <div class="total-card"><h3>إجمالي التكلفة الأساسية</h3><div class="value">${this.formatNumber(summaryTotal)} جنيه</div></div>
+                <div class="total-card"><h3>إجمالي سعر البيع</h3><div class="value">${this.formatNumber(summarySellingTotal)} جنيه</div></div>
+                <div class="total-card"><h3>إجمالي سعر البيع النهائي</h3><div class="value">${this.formatNumber(summaryFinalTotal)} جنيه</div></div>
+            </div>
+            <div class="usage-details">
+                <h3>تفاصيل البنود (قابلة للطي)</h3>
+                <button class="expand-all-btn" onclick="toggleAllItems()">توسيع/طي الكل</button>
+                ${items.map((it, idx) => `
+                    <div class="item-card">
+                        <div class="item-header" onclick="toggleItem(${idx})">${it.mainItem} - ${it.subItem}</div>
+                        <div class="item-content" id="item-${idx}">
+                            <table class="summary-table">
+                                <thead><tr><th>الوصف</th><th>القيمة</th></tr></thead>
+                                <tbody>
+                                    <tr><td>الكمية</td><td>${this.formatNumber(it.quantity)} ${it.unit}</td></tr>
+                                    <tr><td>تكلفة الوحدة بعد الهالك/التشغيل</td><td>${this.formatNumber(it.adjustedUnitCost)} جنيه</td></tr>
+                                    <tr><td>سعر البيع للوحدة</td><td>${this.formatNumber(it.sellPrice)} جنيه</td></tr>
+                                    <tr><td>إجمالي التكلفة</td><td>${this.formatNumber(it.totalCost)} جنيه</td></tr>
+                                    <tr><td>إجمالي البيع</td><td>${this.formatNumber(it.totalSell)} جنيه</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="footer">
+            <p>تم إنشاء هذا التقرير بواسطة نظام حساب تكاليف البناء</p>
+        </div>
+    </div>
+    <script>
+        function toggleItem(i){
+            const el = document.getElementById('item-'+i);
+            const header = el.previousElementSibling;
+            el.classList.toggle('collapsed');
+            header.classList.toggle('collapsed');
+        }
+        function toggleAllItems(){
+            const contents = Array.from(document.querySelectorAll('.item-content'));
+            const headers = Array.from(document.querySelectorAll('.item-header'));
+            const anyExpanded = contents.some(el => !el.classList.contains('collapsed'));
+            if (anyExpanded) {
+                contents.forEach(el => el.classList.add('collapsed'));
+                headers.forEach(h => h.classList.add('collapsed'));
+            } else {
+                contents.forEach(el => el.classList.remove('collapsed'));
+                headers.forEach(h => h.classList.remove('collapsed'));
+            }
+        }
+    </script>
+</body>
+</html>`;
     }
 
 }
