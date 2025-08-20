@@ -2440,11 +2440,10 @@ select option {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-gold);
-    margin-bottom: var(--spacing-lg);
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    min-width: 200px;
+    margin: 0;
+    display: inline-block;
+    align-self: center;
+    min-width: 160px;
 }
 
 #createProjectBtn:hover {
