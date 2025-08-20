@@ -61,19 +61,19 @@ export const workmanshipList = [
   },
   {
     "Resource": "مصنعية أنسومات",
-    "Unit": "م2",
-    "Unit Cost": 120,
+    "Unit": "يومية",
+    "Unit Cost": 3500,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية سيكا 107",
-    "Unit": "م2",
-    "Unit Cost": NaN,
+    "Unit": "يومية",
+    "Unit Cost": 500,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية حراري",
-    "Unit": "م2",
+    "Unit": "يومية",
     "Unit Cost": 100,
     "Type": "مصنعيات"
   },
@@ -98,79 +98,79 @@ export const workmanshipList = [
   {
     "Resource": "مصنعية أبيض مسطح",
     "Unit": "م2",
-    "Unit Cost": 45,
+    "Unit Cost": 300,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية أخضر مسطح",
     "Unit": "م2",
-    "Unit Cost": 45,
+    "Unit Cost": 350,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية أبيض طولي",
     "Unit": "مط",
-    "Unit Cost": 35,
+    "Unit Cost": 210,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية أخضر طولي",
     "Unit": "مط",
-    "Unit Cost": 35,
+    "Unit Cost": 245,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية تجاليد أبيض",
     "Unit": "م2",
-    "Unit Cost": 120,
+    "Unit Cost": 300,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية تجاليد أخضر",
     "Unit": "م2",
-    "Unit Cost": 120,
+    "Unit Cost": 350,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية قواطيع أبيض",
     "Unit": "م2",
-    "Unit Cost": 150,
+    "Unit Cost": 600,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية قواطيع أخضر",
     "Unit": "م2",
-    "Unit Cost": 150,
+    "Unit Cost": 700,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية بيوت ستائر و نور",
     "Unit": "مط",
-    "Unit Cost": 180,
+    "Unit Cost": 150,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية تراك ماجنتك",
     "Unit": "مط",
-    "Unit Cost": 250,
+    "Unit Cost": 150,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية تأسيس نقاشة حوائط",
     "Unit": "م2",
-    "Unit Cost": 25,
+    "Unit Cost": 48,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية تأسيس نقاشة أسقف",
     "Unit": "م2",
-    "Unit Cost": 30,
+    "Unit Cost": 48,
     "Type": "مصنعيات"
   },
   {
     "Resource": "مصنعية تشطيب نقاشة",
     "Unit": "م2",
-    "Unit Cost": 40,
+    "Unit Cost": 24,
     "Type": "مصنعيات"
   },
   {

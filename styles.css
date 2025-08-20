@@ -1025,7 +1025,7 @@ tbody tr:hover {
 }
 
 .summary-total::before {
-    content: "الإجمالي الكلي: ";
+    content: "إجمالي التكلفة: ";
     color: var(--accent);
     font-weight: 800;
     font-size: 1.8rem;
@@ -1744,7 +1744,8 @@ tbody tr:hover {
 
 
 
-.export-excel-btn {
+.export-excel-btn,
+.export-html-btn {
   background: var(--accent);
   color: var(--bg-primary);
   border: none;
@@ -1757,7 +1758,9 @@ tbody tr:hover {
   margin-bottom: 10px;
   transition: background 0.2s;
 }
-.export-excel-btn:hover {
+
+.export-excel-btn:hover,
+.export-html-btn:hover {
   background: var(--accent-hover);
 }
 
@@ -2749,6 +2752,95 @@ select option {
     margin-top: var(--spacing-xl);
 }
 
+/* Selection Controls Styling */
+.selection-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-gold);
+}
+
+.select-all-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.select-all-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.select-all-section label {
+    color: var(--accent);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+}
+
+.selection-info {
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-base);
+}
+
+/* Summary Card Checkbox Styling */
+.summary-card .item-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin-right: var(--spacing-sm);
+}
+
+/* Summary Card Quantity Input Styling */
+.summary-card .quantity-input {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    transition: all 0.3s ease;
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.summary-card .quantity-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.15);
+    background: var(--bg-tertiary);
+}
+
+.summary-card .quantity-input:hover {
+    border-color: var(--accent);
+    background: var(--bg-tertiary);
+}
+
+/* Remove spinner arrows from all number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Global input styling for better UX */
+input[type="number"]:focus {
+    cursor: text;
+}
+
 .total-row {
     display: flex;
     align-items: center;
@@ -3120,7 +3212,7 @@ select option {
 }
 
 .summary-total::before {
-    content: "الإجمالي الكلي: ";
+    content: "إجمالي التكلفة: ";
     color: var(--accent);
     font-weight: var(--font-weight-extrabold);
     font-size: var(--font-size-3xl);

@@ -99,7 +99,7 @@ export const materialsList = [
   },
   {
     "Resource": "أديبوند",
-    "Unit": "جركن",
+    "Unit": "جركن 1 كيلو",
     "Alt Unit": null,
     "Unit Cost": 175.0,
     "Type": "خامات"
@@ -120,21 +120,21 @@ export const materialsList = [
   },
   {
     "Resource": "سيكا 107",
-    "Unit": "شيكارة",
+    "Unit": "مجموعة",
     "Alt Unit": null,
     "Unit Cost": 1000.0,
     "Type": "خامات"
   },
   {
     "Resource": "فوم",
-    "Unit": "جركن",
+    "Unit": "م2",
     "Alt Unit": null,
     "Unit Cost": 50.0,
     "Type": "خامات"
   },
   {
     "Resource": "مشمع",
-    "Unit": "لفة",
+    "Unit": "كيلو",
     "Alt Unit": null,
     "Unit Cost": 450.0,
     "Type": "خامات"
@@ -148,9 +148,9 @@ export const materialsList = [
   },
   {
     "Resource": "سيلر مائي",
-    "Unit": "لتر",
-    "Alt Unit": "بستلة 9 لتر",
-    "Unit Cost": 75.0,
+    "Unit": "بستلة 9 لتر",
+    "Alt Unit": "لتر",
+    "Unit Cost": 365.0,
     "Type": "خامات"
   },
   {
@@ -179,6 +179,361 @@ export const materialsList = [
     "Unit": "لتر",
     "Alt Unit": "بستلة 9 لتر",
     "Unit Cost": 60.0,
+    "Type": "خامات"
+  },
+  // خامات كهرباء
+  {
+    "Resource": "انتركم",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 150.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "بريزة دفاية",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 25.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "بريزة عادية",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 15.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "بريزة قوي",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 35.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "بواط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 8.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "تكييف",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 2500.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "تلفاز",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 1200.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "تليفون",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 80.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "ثرموستات تكييف",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 120.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "جاكوزي",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 800.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "جرس أو شفاط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 45.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "داتا",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 25.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "دفياتير 3 طرف",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 180.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "دفياتير 4 طرف",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 220.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "سخان",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 400.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "سخان فوري",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 600.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "شيش حصيرة",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 85.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "صواعد 16 مل",
+    "Unit": "مط",
+    "Alt Unit": null,
+    "Unit Cost": 12.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "صواعد تليفون",
+    "Unit": "مط",
+    "Alt Unit": null,
+    "Unit Cost": 8.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "صواعد دش",
+    "Unit": "مط",
+    "Alt Unit": null,
+    "Unit Cost": 15.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "صواعد نت",
+    "Unit": "مط",
+    "Alt Unit": null,
+    "Unit Cost": 18.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "لوحة 12 خط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 350.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "لوحة 18 خط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 450.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "لوحة 24 خط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 550.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "لوحة 36 خط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 750.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "لوحة 48 خط",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 950.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "مخرج إضاءة",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 12.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "مخرج إضاءة درج",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 15.0,
+    "Type": "خامات كهرباء"
+  },
+  {
+    "Resource": "مخرج سماعة",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 20.0,
+    "Type": "خامات كهرباء"
+  },
+  // خامات سباكة
+  {
+    "Resource": "بارد",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 35.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "بيبة 15 سم",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 8.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "بيبة 30 سم",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 12.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "بيبة 65 سم",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 18.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "تأسيس خزان",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 120.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "تأسيس غلاية",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 85.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "تأسيس موتور",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 200.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "جيت شاور",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 45.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "جيت شاور دفن",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 65.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "خزان دفن",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 180.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "خلاط دفن 1 مخرج",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 95.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "خلاط دفن 2 مخرج",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 125.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "خلاط دفن 3 مخرج",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 155.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "ساخن بارد",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 55.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "صرف تكييف",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 25.0,
+    "Type": "خامات سباكة"
+  },
+  {
+    "Resource": "محبس دفن",
+    "Unit": "نقطة",
+    "Alt Unit": null,
+    "Unit Cost": 15.0,
+    "Type": "خامات سباكة"
+  },
+  // خامات تراك ماجنتك
+  {
+    "Resource": "عود تراك 6 متر",
+    "Unit": "قطعة",
+    "Alt Unit": null,
+    "Unit Cost": 1600.0,
+    "Type": "خامات"
+  },
+  {
+    "Resource": "زاوية معدن",
+    "Unit": "قطعة",
+    "Alt Unit": null,
+    "Unit Cost": 254.0,
+    "Type": "خامات"
+  }
+  ,
+  // خامات نقاشة إضافية لتأسيس الأسقف
+  {
+    "Resource": "صنفرة",
+    "Unit": "لفة",
+    "Alt Unit": null,
+    "Unit Cost": 150.0,
+    "Type": "خامات"
+  },
+  {
+    "Resource": "تيب",
+    "Unit": "لفة",
+    "Alt Unit": null,
+    "Unit Cost": 45.0,
+    "Type": "خامات"
+  },
+  {
+    "Resource": "كرتون",
+    "Unit": "كيلو",
+    "Alt Unit": null,
+    "Unit Cost": 22.0,
     "Type": "خامات"
   }
 ];

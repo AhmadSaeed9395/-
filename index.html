@@ -207,6 +207,15 @@
                 <div class="collapsible-content" id="summaryPanelContent" style="display:none;">
                     <div class="summary-section" id="summarySection">
                         <h2 class="panel-title">البنود</h2>
+                        <div class="selection-controls">
+                            <div class="select-all-section">
+                                <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox">
+                                <label for="selectAllCheckbox">تحديد الكل</label>
+                            </div>
+                            <div class="selection-info">
+                                <span id="selectionCount">0</span> من <span id="totalItems">0</span> عنصر محدد
+                            </div>
+                        </div>
                         <button id="exportExcelBtn" class="export-excel-btn">تصدير Excel</button>
                         <button id="summaryUndoBtn" class="summary-undo-btn" style="display:none;" title="تراجع عن الحذف">
                             <span class="undo-icon">&#8630;</span>
@@ -234,6 +243,7 @@
                 <div class="collapsible-content" id="resourcesPanelContent" style="display:none;">
                     <div class="resources-section" id="resourcesSection">
                         <h2 class="panel-title">إدارة الموارد</h2>
+                        <button id="exportResourcesHtmlBtn" class="export-html-btn">تصدير HTML</button>
                         <div class="resources-accordion" id="resourcesAccordion">
                             <div class="accordion-item" id="resourcesMaterialsAccordion">
                                 <div class="accordion-header" id="resourcesMaterialsHeader">

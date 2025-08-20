@@ -2,18 +2,21 @@ export const laborList = [
   {
     "Resource": "عربية رتش",
     "Unit": "عربية 3 متر مكعب",
+    "Alt Unit": "نقلة",
     "Unit Cost": 500,
     "Type": "عمالة"
   },
   {
     "Resource": "نظافة",
     "Unit": "يومية",
+    "Alt Unit": "ساعة",
     "Unit Cost": 400,
     "Type": "عمالة"
   },
   {
     "Resource": "تشوين",
     "Unit": "يومية",
+    "Alt Unit": "ساعة",
     "Unit Cost": 400,
     "Type": "عمالة"
   },
