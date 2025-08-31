@@ -1739,22 +1739,46 @@ class ConstructionCalculator {
             const rateCell = row.insertCell();
             rateCell.style.textAlign = 'center';
             rateCell.innerHTML = `
-                <input type="number" class="rate-input" value="${this.formatRate(item.rate)}" min="0" step="0.0001" style="width:70px;"> 
-                <button class="rate-default-btn" title="الافتراضي" style="margin-right:4px;">↺</button>
+                <div class="rate-input-container">
+                    <input type="number" class="rate-input" value="${this.formatRate(item.rate)}" min="0" step="0.01" style="width:80px;" placeholder="0.00">
+                    <button class="rate-default-btn" title="إعادة تعيين للقيمة الافتراضية" style="margin-right:4px;">↺</button>
+                </div>
             `;
             // Add event listeners
             const rateInput = rateCell.querySelector('.rate-input');
             const defaultBtn = rateCell.querySelector('.rate-default-btn');
+            // Enhanced rate input handling
             rateInput.addEventListener('input', (e) => {
-                this.customRates[item.rateKey] = e.target.value;
+                const value = parseFloat(e.target.value);
+                if (!isNaN(value) && value >= 0) {
+                    this.customRates[item.rateKey] = value;
                 this.saveProjectCustomRates();
                 this.calculate();
-                // Update resources totals ribbon live
-                this.updateResourcesTotals();
+                    // Update resources totals ribbon live
+                    this.updateResourcesTotals();
+                }
             });
+            
+            // Handle focus for better UX
+            rateInput.addEventListener('focus', (e) => {
+                e.target.select();
+            });
+            
+            // Handle blur to format the value
+            rateInput.addEventListener('blur', (e) => {
+                const value = parseFloat(e.target.value);
+                if (!isNaN(value) && value >= 0) {
+                    e.target.value = this.formatRate(value);
+                } else {
+                    e.target.value = this.formatRate(item.rate);
+                }
+            });
+            
             defaultBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.customRates[item.rateKey] = this.formatRate(item.defaultRate);
+                const defaultRate = this.formatRate(item.defaultRate);
+                this.customRates[item.rateKey] = parseFloat(defaultRate);
+                rateInput.value = defaultRate;
                 this.saveProjectCustomRates();
                 this.calculate();
                 // Update resources totals ribbon live
@@ -3154,9 +3178,15 @@ class ConstructionCalculator {
         console.log('Saved labor floor level to project:', this.laborFloorLevel);
     }
 
-    // Helper to format rates to up to 4 decimal places, removing trailing zeros
+    // Helper to format rates to up to 2 decimal places, removing trailing zeros
     formatRate(val) {
-        return parseFloat(val).toFixed(4).replace(/\.0+$|0+$/,'').replace(/\.$/, '');
+        if (val === null || val === undefined || isNaN(val)) return '0';
+        const num = parseFloat(val);
+        if (isNaN(num)) return '0';
+        // Format to 2 decimal places but remove unnecessary trailing zeros
+        const formatted = num.toFixed(2);
+        // Remove trailing zeros after decimal point
+        return formatted.replace(/\.?0+$/, '');
     }
 
     // Show item details modal for a summary card

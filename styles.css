@@ -3707,3 +3707,90 @@ input[type="number"]:focus {
         max-width: 200px;
     }
 }
+
+/* Remove spinner arrows from all number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Enable spinner buttons specifically for rate inputs */
+.rate-input::-webkit-outer-spin-button,
+.rate-input::-webkit-inner-spin-button {
+    -webkit-appearance: auto !important;
+    margin: 0;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.rate-input::-webkit-outer-spin-button:hover,
+.rate-input::-webkit-inner-spin-button:hover {
+    opacity: 1;
+}
+
+.rate-input {
+    -moz-appearance: auto !important;
+}
+
+/* Rate input container styling */
+.rate-input-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rate-input {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+}
+
+.rate-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.15);
+    background: var(--bg-tertiary);
+}
+
+.rate-input:hover {
+    border-color: var(--accent);
+    background: var(--bg-tertiary);
+}
+
+/* Rate default button styling */
+.rate-default-btn {
+    background: var(--bg-tertiary);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rate-default-btn:hover {
+    background: var(--accent);
+    color: var(--bg-primary);
+    transform: scale(1.05);
+}
+
+.rate-default-btn:active {
+    transform: scale(0.95);
+}

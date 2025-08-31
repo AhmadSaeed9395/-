@@ -1,4 +1,4 @@
-﻿export const itemsList = [
+export const itemsList = [
   {
     "Main Item": "تأسيس تكييفات",
     "Sub Item": "تكييف 1.5 و 2.25 حصان",
@@ -699,20 +699,7 @@
     "Measurement Type": "متر مسطح",
     "Alt Unit": null
   },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "بارد",
-    "Type": "خامات",
-    "Resource": "بارد",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
+
   {
     "Main Item": "العزل",
     "Sub Item": "عزل أنسومات",
@@ -1372,76 +1359,7 @@
     "Measurement Type": "نقطة",
     "Alt Unit": null
   },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "بيبة 15 سم",
-    "Type": "خامات",
-    "Resource": "بيبة 15 سم",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "بيبة 30 سم",
-    "Type": "خامات",
-    "Resource": "بيبة 30 سم",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "بيبة 65 سم",
-    "Type": "خامات",
-    "Resource": "بيبة 65 سم",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "تأسيس خزان",
-    "Type": "خامات",
-    "Resource": "تأسيس خزان",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "تأسيس غلاية",
-    "Type": "خامات",
-    "Resource": "تأسيس غلاية",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
+
   {
     "Main Item": "بورسلين",
     "Sub Item": "بورسلين أرضيات",
@@ -1554,20 +1472,7 @@
     "Measurement Type": "متر مسطح",
     "Alt Unit": null
   },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "تأسيس موتور",
-    "Type": "خامات",
-    "Resource": "تأسيس موتور",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
+
   {
     "Main Item": "تأسيس كهرباء",
     "Sub Item": "تكييف",
@@ -1906,76 +1811,8 @@
     "Measurement Type": "متر طولي",
     "Alt Unit": null
   },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "جيت شاور",
-    "Type": "خامات",
-    "Resource": "جيت شاور",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "جيت شاور دفن",
-    "Type": "خامات",
-    "Resource": "جيت شاور دفن",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "خزان دفن",
-    "Type": "خامات",
-    "Resource": "خزان دفن",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "خلاط دفن 1 مخرج",
-    "Type": "خامات",
-    "Resource": "خلاط دفن 1 مخرج",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "خلاط دفن 2 مخرج",
-    "Type": "خامات",
-    "Resource": "خلاط دفن 2 مخرج",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
+
+
   {
     "Main Item": "جبسوم بورد",
     "Sub Item": "أبيض مسطح",
@@ -1990,20 +1827,7 @@
     "Measurement Type": "متر مسطح",
     "Alt Unit": null
   },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "خلاط دفن 3 مخرج",
-    "Type": "خامات",
-    "Resource": "خلاط دفن 3 مخرج",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
+
   {
     "Main Item": "جبسوم بورد",
     "Sub Item": "أخضر مسطح",
@@ -2607,20 +2431,7 @@
     "Measurement Type": "متر مسطح",
     "Alt Unit": null
   },
-  {
-    "Main Item": "تأسيس سباكة",
-    "Sub Item": "ساخن بارد",
-    "Type": "خامات",
-    "Resource": "ساخن بارد",
-    "Unit": "نقطة",
-    "Quantity per Unit": 1,
-    "Quantity per Alt Unit": null,
-    "Unit Cost": null,
-    "Alt Unit Cost": null,
-    "Cost per Unit": null,
-    "Measurement Type": "نقطة",
-    "Alt Unit": null
-  },
+
   {
     "Main Item": "تأسيس كهرباء",
     "Sub Item": "سخان ",
